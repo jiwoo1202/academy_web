@@ -1,14 +1,19 @@
+
+import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 
 import '../../api/pdf/pdf_api.dart';
 import '../../components/button/main_button.dart';
+import '../../components/controllers/notification_controller.dart';
 import '../../components/font/font.dart';
 import '../../firebase/firebase_user.dart';
 import '../../model/user.dart';
 import '../../provider/user_state.dart';
-import '../main/student/test/test_main_screen.dart';
+import '../community/story/story_detail_screen.dart';
+import '../community/story/story_main_screen.dart';
 import '../main/main_screen.dart';
 import '../mypage/mypage_screen.dart';
 import '../register/register_main_screen.dart';
@@ -30,10 +35,24 @@ class _LoginMainScreenState extends State<LoginMainScreen>
   TextEditingController _teacherPwController = TextEditingController();
   bool _obscureText = false;
   bool _obscureText2 = false;
-
+  
+  List _userList = [];
   @override
   void initState() {
     _nestedTabController = TabController(length: 2, vsync: this);
+
+    AwesomeNotifications().setListeners(
+        onActionReceivedMethod:         NotificationController.onActionReceivedMethod,
+        onNotificationCreatedMethod:    NotificationController.onNotificationCreatedMethod,
+        onNotificationDisplayedMethod:  NotificationController.onNotificationDisplayedMethod,
+        onDismissActionReceivedMethod:  NotificationController.onDismissActionReceivedMethod
+    );
+
+    AwesomeNotifications().isNotificationAllowed().then((isAllowed) {
+      if(!isAllowed){
+        AwesomeNotifications().requestPermissionToSendNotifications();
+      }
+    });
 
     userGet('YaEDhOV20pKDnAz69ixf');
     super.initState();
@@ -346,23 +365,21 @@ class _LoginMainScreenState extends State<LoginMainScreen>
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: MainButton(
                   onPressed: () async {
-                    await userGet('SIg3OP2qqovlBZROIaRr');
                     switch (_nestedTabController.index) {
-
                       case 0:
-                        // us.number.value = _studentIdController.text;
-                        // final url =
-                        //     'https://firebasestorage.googleapis.com/v0/b/miocr-82323.appspot.com/o/test.pdf?alt=media&token=0fd055a8-aa9d-41d8-970c-1c882ed6d5dc';
-                        // final file = await PDFApi.loadNetwork(url);
-                        // Get.to(()=>TestMainScreen(file: file));
-                        Get.to(() => BottomNavigator());
-                        print('go to student');
+
+                        // await userGet('SIg3OP2qqovlBZROIaRr');
+                        // Get.toNamed(BottomNavigator.id);
+                        Get.toNamed(StoryMainScreen.id);
                         break;
                       case 1:
                         // us.name.value = 'i am teacher';
                         // Get.toNamed(MainScreen.id);
-                        Get.to(() => BottomNavigator());
-                        print('go to teacher');
+
+                        print('선생님 로그인');
+                        await userGet('N5mGm8g9a9vZWvAqh0Wc');
+                        Get.toNamed(BottomNavigator.id);
+
                         break;
                     }
                   },
@@ -404,9 +421,74 @@ class _LoginMainScreenState extends State<LoginMainScreen>
                         ),
                       ),
                     ),
+                    Expanded(
+                      child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () {
+                            AwesomeNotifications().createNotification(
+                                content: NotificationContent(
+                                    id: 0,
+                                    channelKey: 'basic_channel',
+                                    title: 'Simple Notification',
+                                    body: 'Simple body',
+                                    actionType: ActionType.Default
+                                ),
+                              actionButtons: <NotificationActionButton>[
+                                // NotificationActionButton(key: 'accept', label: 'Accept'),
+                                // NotificationActionButton(key: 'reject', label: 'Reject'),
+                                // NotificationActionButton(key: '11', label: '11'),
+                                NotificationActionButton(
+                                    key: 'REPLY',
+                                    label: 'Reply Message',
+                                    requireInputText: true,
+                                    actionType: ActionType.SilentAction
+                                ),
+                                // NotificationActionButton(
+                                //     key: 'DISMISS',
+                                //     label: 'Dismiss',
+                                //     actionType: ActionType.DismissAction,
+                                //     isDangerousOption: true)
+                              ],
+                            );
+                          },
+                          child: Text(
+                            'tab',
+                            style: f14Greyw500,
+                            textAlign: TextAlign.center,
+                          )),
+                    ),
+                    VerticalDivider(
+                      color: const Color(0xffE9E9E9),
+                      thickness: 0.5,
+                    ),
                   ],
                 ),
               ),
+              // Obx(() => Text(
+              //   '${us.count}',
+              //   style: TextStyle(color: Colors.black),
+              // )),
+              //
+              // TextButton(
+              //   onPressed: () {
+              //     us.increase();
+              //     us.name.value = 'my name is ipad';
+              //   },
+              //   child: Text(
+              //     'hello',
+              //     style: TextStyle(color: Colors.black,fontSize: 24),
+              //   ),
+              // ),
+              //
+              // TextButton(
+              //   onPressed: () {
+              //     Get.toNamed(MainScreen.id);
+              //   },
+              //   child: Text(
+              //     'move',
+              //     style: TextStyle(color: Colors.black,fontSize: 24),
+              //   ),
+              // ),
             ],
           ),
         ),

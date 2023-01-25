@@ -57,7 +57,7 @@ class _ScoreCheckScreenState extends State<ScoreCheckScreen> {
                 MainTile(
                   isOpened: true,
                   isStudent: true,
-                  subject: '사회',
+                  title: '사회',
                   tName: '가나다',
                   onTap: () async {
                     ts.testDocId.value = ts.myAnswer[index]['docId'];

@@ -26,16 +26,18 @@ Future<void> firebaseTestUpload() async{
   });
 }
 
-Future<void> firebaseAnswerGet() async{
+Future<void> firebaseAnswerGet(String docId) async{
   final ts = Get.put(TestState());
 
   CollectionReference ref = FirebaseFirestore.instance.collection('answer');
-  QuerySnapshot snapshot = await ref.where('docId', isEqualTo: 'mj3HJ1QeWAj2TOk3ozPt').get();
+  QuerySnapshot snapshot = await ref.where('docId', isEqualTo: docId).get();
 
   final allData = snapshot.docs.map((doc) => doc.data()).toList();
+  List a = allData;
   ts.realAnswer.value = allData;
   print('real answer : ${ts.realAnswer}');
 }
+
 
 Future<void> firebaseAllQuestionGet() async{
   final ts = Get.put(TestState());
