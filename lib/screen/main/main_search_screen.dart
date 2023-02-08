@@ -38,7 +38,7 @@ class _MainSearchScreenState extends State<MainSearchScreen> {
                   height: 46,
                   padding: EdgeInsets.symmetric(horizontal: 15),
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.all(Radius.circular(5.0)),
+                    borderRadius: BorderRadius.all(Radius.circular(8.0)),
                     color: Colors.white,
                     boxShadow: [
                       BoxShadow(

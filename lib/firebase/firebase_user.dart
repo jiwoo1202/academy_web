@@ -1,19 +1,24 @@
+
+import 'package:academy/screen/login/login_main_screen.dart';
+import 'package:academy/screen/main/main_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
+import '../components/dialog/showAlertDialog.dart';
 import '../model/user.dart';
 import 'package:get/get.dart';
 
 import '../provider/user_state.dart';
 
-Future<void> userGet(String docId)async{
+Future<void> userGet(String id,String pw)async{
   final controller = Get.put(UserState());
   CollectionReference ref = FirebaseFirestore.instance.collection('user');
   try {
-    QuerySnapshot snapshot = await ref.where('docId', isEqualTo: docId).get();
+    QuerySnapshot snapshot = await ref.where('id', isEqualTo: id).where('pw', isEqualTo: pw).get();
     final allData = snapshot.docs.map((doc) => doc.data()).toList();
     print('alldata : ${allData.length}');
 
     controller.userList.value = snapshot.docs.map<User>((doc) {
-      return User.fromDocument(doc);
+           return User.fromDocument(doc);
     }).toList();
   } catch (e) {
     print(e);

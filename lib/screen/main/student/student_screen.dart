@@ -1,16 +1,19 @@
 import 'package:academy/components/dialog/showAlertDialog.dart';
-import 'package:academy/components/font/font.dart';
 import 'package:academy/firebase/firebase_answer.dart';
 import 'package:academy/provider/answer_state.dart';
 import 'package:academy/provider/test_state.dart';
+import 'package:academy/screen/main/student/test/individual/test_individual_screen.dart';
 import 'package:academy/util/loading.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import '../../../api/pdf/pdf_api.dart';
 import '../../../components/tile/main_tile.dart';
-import '../../../provider/user_state.dart';
-import '../main_search_screen.dart';
+import '../../../util/colors.dart';
+
+
+import '../../../../util/font.dart';
 import 'test/test_main_screen.dart';
 
 class StudentScreen extends StatefulWidget {
@@ -23,123 +26,143 @@ class StudentScreen extends StatefulWidget {
 class _StudentScreenState extends State<StudentScreen> {
   TextEditingController _pwcontroller = TextEditingController();
   bool isLoading = true;
+
   @override
   void initState() {
-    Future.delayed(Duration.zero,() async{
-      _pwcontroller;
-      await getState('대기');
-      setState(() {
-        isLoading = false;
-      });
-    });
+    final as = Get.put(AnswerState());
+    as.getDocid.value = [];
+    as.teacherList.value = [];
+    as.createList.value = [];
+    // Future.delayed(Duration.zero, () async {
+    //   as.getDocid.value = [];
+    //   as.teacherList.value = [];
+    //   as.createList.value = [];
+    //   _pwcontroller;
+    //   await getState('대기');
+    //   setState(() {
+    //     isLoading = false;
+    //   });
+    // });
     super.initState();
   }
+
   @override
-  void dispose(){
+  void dispose() {
     _pwcontroller.dispose();
     super.dispose();
   }
+
   @override
   Widget build(BuildContext context) {
-    final as =Get.put(AnswerState());
+    final as = Get.put(AnswerState());
     final ts = Get.put(TestState());
     return SingleChildScrollView(
-      child: isLoading?LoadingBodyScreen():
-      Container(width: Get.width,
-        padding: EdgeInsets.symmetric(horizontal: Get.width*0.2, vertical: 30),
-        child: Column(
-          children: [
-            const SizedBox(height: 30,),
-            Text(
-              '학생',
-              style: f32w500,
-            ),
-            const SizedBox(height: 30,),
-            //검색
-            GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () async {
-                Get.to(() => MainSearchScreen());
-                // setState(() {
-                //   if (drugName != null && drugName != '') createDrugItem(drugName);
-                // });
-              },
-              child: Container(
-                  alignment: Alignment.topCenter,
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      width: 1,
-                      color: Colors.black,
+      physics: ClampingScrollPhysics(),
+      child: Container(
+        width: Get.width,
+        padding: EdgeInsets.only(right: 24, left: 24, top: 60),
+        child: StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('answer')
+              .where('state', isEqualTo: '대기')
+              .orderBy('createDate', descending: true)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return LoadingBodyScreen();
+            }
+            return Column(
+              children: [
+                Text(
+                  '학생',
+                  style: f24w500,
+                ),
+                const SizedBox(
+                  height: 30,
+                ),
+                //검색
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () async {
+                    // var drugName =
+                    // Navigator.push(
+                    //   context,
+                    //   MaterialPageRoute(
+                    //     builder: (context) => MainSearchScreen(),
+                    //   ),
+                    // );
+                  },
+                  child: Container(
+                    alignment: Alignment.topCenter,
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 20, vertical: 18.5),
+                    decoration: BoxDecoration(
+                      color: textFormColor,
+                      borderRadius: BorderRadius.all(Radius.circular(8.0)),
+                    ),
+                    child: Align(
+                      alignment: Alignment.topLeft,
+                      child: Text('검색', style: f16w400grey8),
                     ),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      SizedBox(width: 50,),
-                      Text(
-                        '검색',
-                        style: const TextStyle(
-                            fontSize: 30,
-                            color: Colors.black,
-                            fontFamily: 'NotoSansKr',
-                            fontWeight: FontWeight.w500),
-                      ),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.add,
-                            size: 24,
-                          ),
-                          SizedBox(
-                            width: 15,
-                          )
-                        ],
-                      ),
-                    ],
-                  )),
-            ),
-            SizedBox(height: 40,),
-            //조건 비어있으면 Text or 카드 있으면 카드 ListView 부르기
-            // false ?
-            // Text('선생님 이름 혹은\n코드를 검색해주세요', style: TextStyle(fontSize: 20),):
-            ListView.builder(
-              itemCount: as.stateList.length,
-              shrinkWrap: true,
-              physics: const ClampingScrollPhysics(),
-              itemBuilder: (context, index) {
-                return Column(
-                  children: [
-                    MainTile(
-                      isOpened: true,
-                      isStudent: true,
-                      subject: as.state.value,
-                      tName: as.teacherList[index],
-                      tCreateDate:'${DateFormat('yyyy-MM-dd HH:mm').format(DateTime.parse(as.createList[index]))}',
-                      onTap: ()async{
-                        getAnswerLength('${as.getDocid[index]}');
-                        ts.answerDocId.value = '${as.getDocid[index]}';
-                        showPasswordDialog(context, '비밀번호', () async{
-                          if(_pwcontroller.text =='11'){
-                            final url =
-                                'https://firebasestorage.googleapis.com/v0/b/academy-957f7.appspot.com/o/12345%2F12345%2F${as.getDocid[index]}.pdf?alt=media&token=5bcde09c-3145-4cdd-bbf8-886299c8a44f';
-                            // print('${as.pdfUploadList[index]}');
-                            //     'https://firebasestorage.googleapis.com/v0/b/academy-957f7.appspot.com/o/${as.getDocid[index]}.pdf?alt=media&token=c5f13bcc-89be-4fc0-a84e-2a3eb5d27f6a';
-                            //     'https://firebasestorage.googleapis.com/v0/b/miocr-82323.appspot.com/o/test.pdf?alt=media&token=0fd055a8-aa9d-41d8-970c-1c882ed6d5dc';
-                            final file = await PDFApi.loadNetwork(url);
-                            Get.back();
-                            Get.to(()=>TestMainScreen(file: file));
-                          }else{print('꽝');}},
-                        );
-                        print('index : $index');
-                      },
-                      switchOnTap: (){}, title: '',
-                    ),
-                    SizedBox(height: 30,),
-                  ],
-                );
-              },
-            ),
-          ],
+                ),
+                const SizedBox(
+                  height: 40,
+                ),
+                ListView.builder(
+                  itemCount: snapshot.data!.docs.length,
+                  shrinkWrap: true,
+                  physics: const ClampingScrollPhysics(),
+                  itemBuilder: (context, index) {
+                    return Column(
+                      children: [
+                        MainTile(
+                          isOpened: true,
+                          isStudent: true,
+                          subject: snapshot.data!.docs[index]['pdfCategory'],
+                          tName: snapshot.data!.docs[index]['teacher'],
+                          tCreateDate:
+                          '${DateFormat('yyyy-MM-dd HH:mm').format(DateTime.parse(snapshot.data!.docs[index]['createDate']))}',
+                          onTap: () async {
+                            getAnswerLength(snapshot.data!.docs[index]['docId']);
+                            ts.answerDocId.value = '${snapshot.data!.docs[index]['docId']}';
+                            as.getTeacherName.value =
+                            '${snapshot.data!.docs[index]['teacher']}';
+                            showPasswordDialog(context, '비밀번호', () async {
+                              if (_pwcontroller.text == snapshot.data!.docs[index]['password']) {
+                                if(snapshot.data!.docs[index]['isIndividual'] == 'true'){
+                                  Get.back();
+                                  _pwcontroller.text = '';
+                                  Get.to(() => TestIndividual(docId: snapshot.data!.docs[index]['docId'],));
+                                }else{
+                                  final url =
+                                      'https://firebasestorage.googleapis.com/v0/b/academy-957f7.appspot.com/o/12345%2F12345%2F${snapshot.data!.docs[index]['docId']}.pdf?alt=media&token=5bcde09c-3145-4cdd-bbf8-886299c8a44f';
+                                  final file = await PDFApi.loadNetwork(url);
+                                  Get.back();
+                                  Get.to(() => TestMainScreen(file: file));
+                                }
+                              } else {
+                                Get.back();
+                                showOnlyConfirmDialog(context, '비밀번호가 맞지 않습니다');
+                                _pwcontroller.text = '';
+                                print('꽝');
+                              }
+                            }, _pwcontroller);
+                            // print('index : $index');
+                          },
+                          switchOnTap: () {},
+                          title: '',
+                        ),
+                        SizedBox(
+                          height: 16,
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ],
+            );
+          },
         ),
       ),
     );

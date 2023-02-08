@@ -7,6 +7,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:get/get.dart';
 
 import '../provider/answer_state.dart';
+import '../provider/test_state.dart';
 
 Future<void> firebaseAnswerUpload(UploadTask? uploadTask) async {
   final as = Get.put(AnswerState());
@@ -14,6 +15,10 @@ Future<void> firebaseAnswerUpload(UploadTask? uploadTask) async {
 
   CollectionReference ref = FirebaseFirestore.instance.collection('answer');
   Answer ass = Answer(
+      isIndividual: 'false',
+      individualBody: [],
+      individualTitle: [],
+      individualFile: [],
       createDate: '${DateTime.now()}',
       answer: as.answer.toList(),
       answerCount: '',
@@ -28,15 +33,31 @@ Future<void> firebaseAnswerUpload(UploadTask? uploadTask) async {
       temp1: '',
       temp2: '');
   ref.add(ass.toMap()).then((doc) async {
-    DocumentReference userDocRef = FirebaseFirestore.instance.collection('answer').doc(doc.id);
+    DocumentReference userDocRef =
+        FirebaseFirestore.instance.collection('answer').doc(doc.id);
     as.docId.value = doc.id;
-    print('1: ${as.docId}');
+    // print('1: ${as.docId}');
     _uploadFile(as.teacher.value, as, uploadTask);
     await userDocRef.update({'docId': '${doc.id}'});
   });
 }
 
-Future<void> _uploadFile(String teacher, AnswerState as, UploadTask? uploadTask) async {
+
+
+// 선생님 비밀번호 가져오는 함수(추가)
+Future<void> getTeacherPassword(String docId) async {
+  final ts = Get.put(TestState());
+  CollectionReference ref = FirebaseFirestore.instance.collection('answer');
+  QuerySnapshot snapshot = await ref.where('docId', isEqualTo: docId).get();
+  final allData = snapshot.docs.map((doc) => doc.data()).toList();
+  List a = allData;
+
+  ts.teacherPassword.value = a[0]['password'];
+  print('${ts.teacherPassword.value}');
+}
+
+Future<void> _uploadFile(
+    String teacher, AnswerState as, UploadTask? uploadTask) async {
   final file = File(as.path.value);
   print('2: ${as.docId.value}');
   final ref = FirebaseStorage.instance
@@ -72,29 +93,39 @@ Future<void> answerGet(String docId) async {
   }
 }
 
+Future<void> firebaseIndividualGet(String docId) async {
+  final ts = Get.put(TestState());
+
+  CollectionReference ref = FirebaseFirestore.instance.collection('answer');
+  QuerySnapshot snapshot = await ref.where('docId', isEqualTo: docId).get();
+
+  final allData = snapshot.docs.map((doc) => doc.data()).toList();
+  ts.individualTestGet.value = allData;
+}
+
 // state가 대기인 상태만 가져오는 함수(추가)
 Future<void> getState(String state) async {
   final as = Get.put(AnswerState());
   CollectionReference ref = FirebaseFirestore.instance.collection('answer');
-  QuerySnapshot snapshot = await ref.where('state', isEqualTo: state).get();
+  QuerySnapshot snapshot = await ref
+      .where('state', isEqualTo: state)
+      .orderBy('createDate', descending: true)
+      .get();
 
   final allData = snapshot.docs.map((doc) => doc.data()).toList();
   List a = allData;
   as.state.value = state;
   as.stateList.value = allData;
 
-  for(int i =0;i<a.length;i++) {
+  for (int i = 0; i < a.length; i++) {
     as.getDocid.add(a[i]['docId']);
     as.teacherList.add(a[i]['teacher']);
     as.createList.add(a[i]['createDate']);
-    print('-------------------');
-    // print('${as.teacher.value}');
-    // print('${as.createList.value}');
-    print('겟 닥아이${as.getDocid.value}');
   }
 }
+
 // answer 정답 길이 가져오는 함수(추가)
-Future<void> getAnswerLength(String docId) async{
+Future<void> getAnswerLength(String docId) async {
   final as = Get.put(AnswerState());
 
   CollectionReference ref = FirebaseFirestore.instance.collection('answer');
@@ -102,8 +133,38 @@ Future<void> getAnswerLength(String docId) async{
 
   final allData = snapshot.docs.map((doc) => doc.data()).toList();
   List a = allData;
-  print('${a}');
+  // print('${a}');
 
-  as.answerlength.value= a[0]['answer'];
+  as.answerlength.value = a[0]['answer'];
   // print('11||${as.answerlength.value}');
 }
+
+// teacher 이름과 날짜 가져오는 함수(추가)
+Future<void> getNameAndDate(String docId) async {
+  final as = Get.put(AnswerState());
+
+  CollectionReference ref = FirebaseFirestore.instance.collection('answer');
+  QuerySnapshot snapshot = await ref.where('docId', isEqualTo: docId).get();
+
+  final allData = snapshot.docs.map((doc) => doc.data()).toList();
+  List a = allData;
+  // print('${a}');
+
+  as.getTeacherName.value = a[0]['teacher'];
+  as.getDate.value = a[0]['createDate'];
+  // print('11||${as.answerlength.value}');
+}
+
+// individual test 수정
+// Future<void> getIndividualTest(String docId) async {
+//   final as = Get.put(AnswerState());
+//
+//   CollectionReference ref = FirebaseFirestore.instance.collection('answer');
+//   QuerySnapshot snapshot = await ref.where('docId', isEqualTo: docId).get();
+//
+//   final allData = snapshot.docs.map((doc) => doc.data()).toList();
+//
+//   as.editIndividual.value = allData;
+//
+//   // print('11||${as.answerlength.value}');
+// }

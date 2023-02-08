@@ -22,4 +22,16 @@ class AnswerState extends GetxController{
   final answerlength = [].obs; // 정답길이(추가)
   final getDocid = [].obs; // 닥아이디 리스트(추가)
 
+  final getTeacherName = ''.obs; //선생이름 가져오기
+  final getDate = ''.obs; //
+
+
+  // individual
+  final essayList = [].obs;
+  final choiceList = [].obs;
+  final individualTitle = [].obs;
+  final individualBody = [].obs;
+  final individualFile = [].obs;
+  final individualFilePath = [].obs;
+  final editIndividual = [].obs;
 }

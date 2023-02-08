@@ -3,6 +3,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class Answer {
   String? createDate;
   List answer;
+  List individualFile;
+  List individualTitle;
+  List individualBody;
+  String? isIndividual;
   String? answerCount;
   String? docId;
   String? group;
@@ -18,6 +22,10 @@ class Answer {
   Answer(
       {required this.createDate,
         required this.answer,
+        required this.individualFile,
+        required this.individualTitle,
+        required this.individualBody,
+        required this.isIndividual,
         required this.answerCount,
         required this.docId,
         required this.group,
@@ -33,7 +41,11 @@ class Answer {
   Answer.fromMap(Map<String, dynamic> map)
       : createDate = map['createDate'],
         answer = map['answer'].cast<String>(),
+        individualTitle = map['individualTitle'].cast<String>(),
+        individualBody = map['individualBody'].cast<String>(),
         answerCount = map['answerCount'],
+        isIndividual = map['isIndividual'],
+        individualFile = map['individualFile'].cast<String>(),
         docId = map['docId'],
         group = map['group'],
         password = map['password'],
@@ -49,6 +61,10 @@ class Answer {
     return {
       "createDate": createDate,
       "answer": answer,
+      "individualFile": individualFile,
+      "individualBody": individualBody,
+      "individualTitle": individualTitle,
+      "isIndividual": isIndividual,
       "answerCount": answerCount,
       "docId" : docId,
       "group" : group,
@@ -68,6 +84,10 @@ class Answer {
       docId: doc.id,
       createDate: doc['createDate'],
       answer: doc['answer'].cast<String>(),
+      individualFile: doc['individualFile'].cast<String>(),
+      individualTitle: doc['individualTitle'].cast<String>(),
+      individualBody: doc['individualBody'].cast<String>(),
+      isIndividual: doc['isIndividual'],
       answerCount : doc['answerCount'],
       group: doc['group'],
       password: doc['password'],
