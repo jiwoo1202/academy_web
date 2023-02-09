@@ -1,3 +1,4 @@
+import 'package:academy/components/dialog/showAlertDialog.dart';
 import 'package:academy/util/loading.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -5,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
 import '../../../components/tile/main_tile.dart';
+import '../../../firebase/firebase_answer.dart';
 import '../../../provider/user_state.dart';
 import '../../../util/behavior.dart';
 import '../../../util/colors.dart';
@@ -52,7 +54,8 @@ class _TeacherScreenState extends State<TeacherScreen> {
                   .snapshots(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Container(height: Get.height,child: LoadingBodyScreen());
+                  return Container(
+                      height: Get.height, child: LoadingBodyScreen());
                 }
 
                 return Column(
@@ -111,9 +114,23 @@ class _TeacherScreenState extends State<TeacherScreen> {
                           children: [
                             MainTile(
                               isOpened:
-                                  snapshot.data!.docs[index]['temp1'] == 'true'
+                                  snapshot.data!.docs[index]['state'] == '대기'
                                       ? true
                                       : false,
+                              onLongPressed: () {
+                                if(snapshot.data!.docs[index]['isIndividual'] == 'true'){
+                                  showComponentDialog(context, '삭제하시겠습니까?', () {
+                                    deleteIndividualTest(
+                                        snapshot.data!.docs[index]['docId']);
+                                    FirebaseStorageApi.deleteFolder(
+                                        path:
+                                        "teacher/${us.userList[0].id}/${snapshot.data!.docs[index]['docId']}");
+                                    Get.back();
+                                  });
+                                }else{
+                                  // 지우학생 코드
+                                }
+                              },
                               isStudent: false,
                               onTap: () async {
                                 // final url =
@@ -143,9 +160,12 @@ class _TeacherScreenState extends State<TeacherScreen> {
                                             ['individualTitle'],
                                         body: snapshot.data!.docs[index]
                                             ['individualBody'],
-                                    image: snapshot.data!.docs[index]
+                                        image: snapshot.data!.docs[index]
                                             ['images'],
+                                    file: snapshot.data!.docs[index]['individualFile'],
                                       ));
+                                }else{
+                                  // 지우학생 이동 코드
                                 }
                               },
                               tName: us.userList[0].id,
@@ -154,15 +174,15 @@ class _TeacherScreenState extends State<TeacherScreen> {
                               title:
                                   '${snapshot.data!.docs[index]['pdfCategory']}',
                               switchOnTap: () {
-                                if (snapshot.data!.docs[index]['temp1'] ==
-                                    'true') {
+                                if (snapshot.data!.docs[index]['state'] ==
+                                    '대기') {
                                   updateData(
                                       snapshot.data!.docs[index]['docId'],
-                                      false);
+                                      '완료');
                                 } else {
                                   updateData(
                                       snapshot.data!.docs[index]['docId'],
-                                      true);
+                                      '대기');
                                 }
                               },
                             ),
@@ -184,10 +204,10 @@ class _TeacherScreenState extends State<TeacherScreen> {
     );
   }
 
-  Future<void> updateData(String docId, bool value) async {
+  Future<void> updateData(String docId, String value) async {
     CollectionReference ref = FirebaseFirestore.instance.collection('answer');
     QuerySnapshot snapshot = await ref.where('docId', isEqualTo: docId).get();
-    snapshot.docs[0].reference.update({'temp1': '${value}'});
+    snapshot.docs[0].reference.update({'state': '${value}'});
     // final allData = snapshot.docs.map((doc) => doc.data()).toList();
     // _allData = allData;
     // print('all : ${_allData.length}');

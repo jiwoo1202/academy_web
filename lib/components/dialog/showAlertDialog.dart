@@ -1,10 +1,12 @@
+
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../../util/colors.dart';
 import '../../util/font.dart';
 
-showComponentUploadDialog(BuildContext context, String title,
-    VoidCallback confirmTap, VoidCallback confirmTap2) {
+showComponentUploadDialog(
+    BuildContext context, String title, VoidCallback confirmTap, VoidCallback confirmTap2) {
   // show the dialog
   showDialog(
       context: context,
@@ -14,21 +16,20 @@ showComponentUploadDialog(BuildContext context, String title,
             borderRadius: BorderRadius.circular(8),
           ),
           // actionsPadding: const EdgeInsets.symmetric(vertical: 20),
-          contentPadding: const EdgeInsets.only(top: 35, bottom: 35),
+          contentPadding: const EdgeInsets.only(top: 35,bottom: 35),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
                 width: MediaQuery.of(context).size.width * 0.9,
                 child: Text('${title}',
-                    textAlign: TextAlign.center, style: f16w700),
+                    textAlign: TextAlign.center,
+                    style: f16w700),
               ),
             ],
           ),
           actions: [
-            Divider(
-              height: 0,
-            ),
+            Divider(height: 0,),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -36,20 +37,20 @@ showComponentUploadDialog(BuildContext context, String title,
                   child: TextButton(
                     style: ButtonStyle(
                       overlayColor:
-                          MaterialStateProperty.all(Colors.transparent),
+                      MaterialStateProperty.all(Colors.transparent),
                     ),
                     child: Text("한번에 등록", style: f16w700primary),
-                    onPressed: confirmTap,
+                    onPressed:confirmTap,
                   ),
                 ),
                 Expanded(
                   child: TextButton(
                     style: ButtonStyle(
                       overlayColor:
-                          MaterialStateProperty.all(Colors.transparent),
+                      MaterialStateProperty.all(Colors.transparent),
                     ),
                     child: Text("한개씩 등록", style: f16w700primary),
-                    onPressed: confirmTap2,
+                    onPressed:confirmTap2,
                   ),
                 ),
               ],
@@ -68,11 +69,12 @@ showOnlyConfirmDialog(BuildContext context, String title) {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
           ),
-          contentPadding: const EdgeInsets.only(top: 35, bottom: 35),
+          contentPadding: const EdgeInsets.only(top: 35,bottom: 35),
           content: Container(
-            width: MediaQuery.of(context).size.width * 0.9,
-            child:
-                Text('${title}', textAlign: TextAlign.center, style: f16w700),
+            width: Get.width * 0.9,
+            child: Text('${title}',
+                textAlign: TextAlign.center,
+                style: f16w700),
           ),
           actions: [
             Divider(
@@ -85,11 +87,11 @@ showOnlyConfirmDialog(BuildContext context, String title) {
                   child: TextButton(
                     style: ButtonStyle(
                       overlayColor:
-                          MaterialStateProperty.all(Colors.transparent),
+                      MaterialStateProperty.all(Colors.transparent),
                     ),
                     child: Text("확인", style: f16w700primary),
                     onPressed: () {
-                      Navigator.pop(context);
+                      Get.back();
                     },
                   ),
                 ),
@@ -166,40 +168,59 @@ showConfirmTapDialog(BuildContext context, String title, VoidCallback onTap) {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return WillPopScope(
-            onWillPop: () {
-              return Future(() => false);
-            },
-            child: AlertDialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              contentPadding: const EdgeInsets.only(top: 35, bottom: 35),
-              content: Container(
-                width: MediaQuery.of(context).size.width * 0.9,
-                child:
-                Text('${title}', textAlign: TextAlign.center, style: f16w700),
-              ),
-              actions: [
-                Divider(
-                  height: 1,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Expanded(
-                      child: TextButton(
-                        style: ButtonStyle(
-                          overlayColor:
-                          MaterialStateProperty.all(Colors.transparent),
-                        ),
-                        child: Text("확인", style: f16w700primary),
-                        onPressed: onTap,
-                      ),
+          onWillPop: () {
+            return Future(() => false);
+          },
+          child: AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(5),
+            ),
+            contentPadding: const EdgeInsets.only(top: 45, bottom: 37),
+            actionsPadding: const EdgeInsets.only(bottom: 21),
+            content: Builder(
+              builder: (context) {
+                return Container(
+                  width: Get.width * 0.9,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('${title}',
+                          textAlign: TextAlign.center,
+                          style: f16w700),
+                    ],
+                  ),
+                );
+              },
+            ),
+            actions: [
+              Center(
+                child: SizedBox(
+                  width: 151,
+                  height: 46,
+                  child: ElevatedButton(
+                    onPressed: onTap,
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5.0))),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          '확인',
+                          textAlign: TextAlign.center,
+                          style: f16w700primary,
+                        )
+                      ],
                     ),
-                  ],
-                )
-              ],
-            ));
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
       });
 }
 
@@ -329,8 +350,94 @@ showConfirmTapDialog(BuildContext context, String title, VoidCallback onTap) {
 //       });
 // }
 
-showPasswordDialog(BuildContext context, String title, VoidCallback confirmTap,
-    TextEditingController pwController) {
+showEditDialog(
+    BuildContext context, String title, VoidCallback confirmTap,TextEditingController Controller) {
+  // show the dialog
+  showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          content: Builder(
+            builder: (context) {
+              return Container(
+                width: MediaQuery.of(context).size.width * 0.5,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('${title}',
+                        textAlign: TextAlign.center, style: f16w700),
+                    SizedBox(
+                      height: 29,
+                    ),
+                    TextField(
+                      controller: Controller,
+                      decoration: InputDecoration(
+                        hintText: '${Controller.text}',
+                        hintStyle: TextStyle(color: Colors.grey),
+                        filled: true,
+                        fillColor: textFormColor,
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(12.0)),
+                          borderSide:
+                          BorderSide(color: Colors.transparent),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.all(Radius.circular(10.0)),
+                          borderSide:
+                          BorderSide(color: Colors.transparent),
+                        ),
+                      ),
+                      // obscureText: true,
+                      keyboardType: TextInputType.text,
+                      minLines: 1,
+                    )
+                  ],
+                ),
+              );
+            },
+          ),
+          actions: [
+            Divider(
+              color: Colors.grey,
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Expanded(
+                  child: TextButton(
+                    style: ButtonStyle(
+                      overlayColor:
+                      MaterialStateProperty.all(Colors.transparent),
+                    ),
+                    child: Text("취소", style: TextStyle(fontFamily: "Pretendard",fontSize: 16,fontWeight: FontWeight.w700,color: Colors.grey)),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                  ),
+                ),
+                Expanded(
+                  child: TextButton(
+                    style: ButtonStyle(
+                      overlayColor:
+                      MaterialStateProperty.all(Colors.transparent),
+                    ),
+                    child: Text("확인", style: TextStyle(fontFamily: "Pretendard",fontSize: 16,fontWeight: FontWeight.w700,color: Color(0xff270BD3))),
+                    onPressed: confirmTap,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      });
+}
+
+showPasswordDialog(
+    BuildContext context, String title, VoidCallback confirmTap,TextEditingController pwController) {
   // show the dialog
   showDialog(
       context: context,
@@ -361,11 +468,13 @@ showPasswordDialog(BuildContext context, String title, VoidCallback confirmTap,
                         fillColor: textFormColor,
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.all(Radius.circular(12.0)),
-                          borderSide: BorderSide(color: Colors.transparent),
+                          borderSide:
+                              BorderSide(color: Colors.transparent),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.all(Radius.circular(10.0)),
-                          borderSide: BorderSide(color: Colors.transparent),
+                          borderSide:
+                              BorderSide(color: Colors.transparent),
                         ),
                       ),
                       obscureText: true,
@@ -390,12 +499,7 @@ showPasswordDialog(BuildContext context, String title, VoidCallback confirmTap,
                       overlayColor:
                           MaterialStateProperty.all(Colors.transparent),
                     ),
-                    child: Text("취소",
-                        style: TextStyle(
-                            fontFamily: "Pretendard",
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.grey)),
+                    child: Text("취소", style: TextStyle(fontFamily: "Pretendard",fontSize: 16,fontWeight: FontWeight.w700,color: Colors.grey)),
                     onPressed: () {
                       Navigator.pop(context);
                     },
@@ -405,14 +509,9 @@ showPasswordDialog(BuildContext context, String title, VoidCallback confirmTap,
                   child: TextButton(
                     style: ButtonStyle(
                       overlayColor:
-                          MaterialStateProperty.all(Colors.transparent),
+                      MaterialStateProperty.all(Colors.transparent),
                     ),
-                    child: Text("확인",
-                        style: TextStyle(
-                            fontFamily: "Pretendard",
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xff270BD3))),
+                    child: Text("확인", style: TextStyle(fontFamily: "Pretendard",fontSize: 16,fontWeight: FontWeight.w700,color: Color(0xff270BD3))),
                     onPressed: confirmTap,
                   ),
                 ),
@@ -493,21 +592,20 @@ showComponentDialog(
             borderRadius: BorderRadius.circular(8),
           ),
           // actionsPadding: const EdgeInsets.symmetric(vertical: 20),
-          contentPadding: const EdgeInsets.only(top: 35, bottom: 35),
+          contentPadding: const EdgeInsets.only(top: 35,bottom: 35),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
                 width: MediaQuery.of(context).size.width * 0.9,
                 child: Text('${title}',
-                    textAlign: TextAlign.center, style: f16w700),
+                    textAlign: TextAlign.center,
+                    style: f16w700),
               ),
             ],
           ),
           actions: [
-            Divider(
-              height: 0,
-            ),
+            Divider(height: 0,),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -515,7 +613,7 @@ showComponentDialog(
                   child: TextButton(
                     style: ButtonStyle(
                       overlayColor:
-                          MaterialStateProperty.all(Colors.transparent),
+                      MaterialStateProperty.all(Colors.transparent),
                     ),
                     child: Text("취소", style: f16w700greyA),
                     onPressed: () {
@@ -527,10 +625,10 @@ showComponentDialog(
                   child: TextButton(
                     style: ButtonStyle(
                       overlayColor:
-                          MaterialStateProperty.all(Colors.transparent),
+                      MaterialStateProperty.all(Colors.transparent),
                     ),
                     child: Text("확인", style: f16w700primary),
-                    onPressed: confirmTap,
+                    onPressed:confirmTap,
                   ),
                 ),
               ],

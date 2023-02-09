@@ -1,6 +1,8 @@
 import 'package:academy/screen/community/story/story_write_screen.dart';
 import 'package:academy/util/loading.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -8,8 +10,7 @@ import '../../../components/community/community_body.dart';
 import '../../../provider/community_state.dart';
 import '../../../provider/user_state.dart';
 import '../../../util/colors.dart';
-import '../../../../util/font.dart';
-
+import '../../../util/font.dart';
 import '../../../util/padding.dart';
 import 'story_detail_screen.dart';
 
@@ -23,6 +24,7 @@ class StoryMainScreen extends StatefulWidget {
 }
 
 class _StoryMainScreenState extends State<StoryMainScreen> {
+  CarouselController carouselController = CarouselController();
   List _communityList = [];
   List blockList = [];
   bool _isLoading = true;
@@ -58,119 +60,165 @@ class _StoryMainScreenState extends State<StoryMainScreen> {
   Widget build(BuildContext context) {
     final cs = Get.put(CommunityState());
     return RefreshIndicator(
-        key: _refreshIndicatorKey,
-        triggerMode: RefreshIndicatorTriggerMode.anywhere,
-        onRefresh: () async {
-          await _refresh();
-        },
-        child: _isLoading ? LoadingBodyScreen() : Container()
-        // : CommunityBody(
-        //     paddingSize: 0,
-        //     body: Transform.translate(
-        //       offset: Offset(0, 0),
-        //       child: ListView.builder(
-        //           controller: scrollController,
-        //           physics: const ClampingScrollPhysics(),
-        //           itemCount: _communityList.length,
-        //           shrinkWrap: true,
-        //           itemBuilder: (context, idx) {
-        //             return blockList.contains(_communityList[idx]['docId'])
-        //                 ? Container()
-        //                 : GestureDetector(
-        //                     behavior: HitTestBehavior.opaque,
-        //                     onTap: () async {
-        //                       Get.to(() => StoryDetailScreen(
-        //                             docId: _communityList[idx]['docId'],
-        //                             id1: _communityList[idx]['id'],
-        //                             refreshIndicatorKey: _refreshIndicatorKey,
-        //                             name: _communityList[idx]['name'],
-        //                           ))!.then((value) => {
-        //                           _refreshIndicatorKey.currentState?.show()
-        //                       });
-        //                     },
-        //                     child: Column(
-        //                       crossAxisAlignment: CrossAxisAlignment.start,
-        //                       children: [
-        //                         Padding(
-        //                           padding: ph24,
-        //                           child: Text(
-        //                             '${_communityList[idx]['title']}',
-        //                             style: f18w400el,
-        //                           ),
-        //                         ),
-        //                         const SizedBox(
-        //                           height: 8,
-        //                         ),
-        //                         Padding(
-        //                           padding: ph24,
-        //                           child: Text(
-        //                             '${_communityList[idx]['body']}',
-        //                             style: f16w400greyAel,
-        //                           ),
-        //                         ),
-        //                         const SizedBox(
-        //                           height: 12,
-        //                         ),
-        //                         Padding(
-        //                           padding: ph24,
-        //                           child: Text(
-        //                             int.parse(DateTime.now()
-        //                                         .difference(DateTime.parse(
-        //                                           '${_communityList[idx]['createDate']}',
-        //                                         ))
-        //                                         .inMinutes
-        //                                         .toString()) <
-        //                                     5
-        //                                 ? '방금 전'
-        //                                 : int.parse(DateTime.now()
-        //                                             .difference(
-        //                                                 DateTime.parse(
-        //                                               '${_communityList[idx]['createDate']}',
-        //                                             ))
-        //                                             .inMinutes
-        //                                             .toString()) <
-        //                                         60
-        //                                     ? '${int.parse(DateTime.now().difference(DateTime.parse(
-        //                                           '${_communityList[idx]['createDate']}',
-        //                                         )).inMinutes.toString())}분 전'
-        //                                     : int.parse(DateTime.now()
-        //                                                 .difference(
-        //                                                     DateTime.parse(
-        //                                                   '${_communityList[idx]['createDate']}',
-        //                                                 ))
-        //                                                 .inHours
-        //                                                 .toString()) <
-        //                                             24
-        //                                         ? '${int.parse(DateTime.now().difference(DateTime.parse(
-        //                                               '${_communityList[idx]['createDate']}',
-        //                                             )).inHours.toString())}시간 전'
-        //                                         : '${int.parse(DateTime.now().difference(DateTime.parse(
-        //                                               '${_communityList[idx]['createDate']}',
-        //                                             )).inDays.toString())}일 전',
-        //                             style: f16w400greyA,
-        //                           ),
-        //                         ),
-        //                         const SizedBox(
-        //                           height: 16,
-        //                         ),
-        //                         Divider(
-        //                           color: cameraBackColor,
-        //                           height: 1,
-        //                         ),
-        //                         const SizedBox(
-        //                           height: 16,
-        //                         ),
-        //                       ],
-        //                     ),
-        //                   );
-        //           }),
-        //     ),
-        //     floatingIcon: const Icon(Icons.edit),
-        //     floatingTap: () {
-        //       Get.toNamed(StoryWriteScreen.id);
-        //     },
-        //   ),
-        );
+      key: _refreshIndicatorKey,
+      triggerMode: RefreshIndicatorTriggerMode.anywhere,
+      onRefresh: () async {
+        await _refresh();
+      },
+      child: _isLoading
+          ? LoadingBodyScreen()
+          : CommunityBody(
+              paddingSize: 0,
+              body: Transform.translate(
+                offset: Offset(0, 0),
+                child: ListView.builder(
+                    controller: scrollController,
+                    physics: const ClampingScrollPhysics(),
+                    itemCount: _communityList.length,
+                    shrinkWrap: true,
+                    itemBuilder: (context, idx) {
+                      return blockList.contains(_communityList[idx]['docId'])
+                          ? Container()
+                          : GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () async {
+                                Get.to(() => StoryDetailScreen(
+                                      docId: _communityList[idx]['docId'],
+                                      id1: _communityList[idx]['id'],
+                                      refreshIndicatorKey: _refreshIndicatorKey,
+                                      name: _communityList[idx]['name'],
+                                    ))!.then((value) => {
+                                    _refreshIndicatorKey.currentState?.show()
+                                });
+                              },
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const SizedBox(height: 8,),
+                                  _communityList[idx]['hasImage'] == 'false' ? Container() :
+                                  Padding(
+                                    padding: ph24,
+                                    child: CarouselSlider(
+                                      items: [
+                                        'https://firebasestorage.googleapis.com/v0/b/academy-957f7.appspot.com/'
+                                            'o/picture%2F${_communityList[idx]['id']}%2F${_communityList[idx]['docId']}'
+                                            '%2F${_communityList[idx]['images'][0]}?alt=media'
+                                      ]
+                                          .map((item) => ClipRRect(
+                                        borderRadius:
+                                        BorderRadius.all(Radius.circular(0.0)),
+                                        child: InkWell(
+                                            onTap: () async {
+                                              Get.to(() => StoryDetailScreen(
+                                                docId: _communityList[idx]['docId'],
+                                                id1: _communityList[idx]['id'],
+                                                refreshIndicatorKey: _refreshIndicatorKey,
+                                                name: _communityList[idx]['name'],
+                                              ))!.then((value) => {
+                                                _refreshIndicatorKey.currentState?.show()
+                                              });
+                                            },
+                                            child: ExtendedImage.network(
+                                              item,
+                                              fit: BoxFit.cover,
+                                              cache: true,
+                                              enableLoadState: false,
+                                            )),
+                                      )).toList(),
+                                      carouselController: carouselController,
+                                      options: CarouselOptions(
+                                        enableInfiniteScroll: false,
+                                        autoPlay: false,
+                                        padEnds: false,
+                                        enlargeCenterPage: false,
+                                        disableCenter: true,
+                                        height: Get.height * 0.3,
+                                        viewportFraction: 1,
+                                      ),
+                                    ),
+                                  ),
+                                  _communityList[idx]['hasImage'] == 'false' ? Container() :
+                                  const SizedBox(height: 8,),
+                                  Padding(
+                                    padding: ph24,
+                                    child: Text(
+                                      '${_communityList[idx]['title']}',
+                                      style: f18w400el,
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                    height: 8,
+                                  ),
+                                  Padding(
+                                    padding: ph24,
+                                    child: Text(
+                                      '${_communityList[idx]['body']}',
+                                      style: f16w400greyAel,
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                    height: 12,
+                                  ),
+                                  Padding(
+                                    padding: ph24,
+                                    child: Text(
+                                      int.parse(DateTime.now()
+                                                  .difference(DateTime.parse(
+                                                    '${_communityList[idx]['createDate']}',
+                                                  ))
+                                                  .inMinutes
+                                                  .toString()) <
+                                              5
+                                          ? '방금 전'
+                                          : int.parse(DateTime.now()
+                                                      .difference(
+                                                          DateTime.parse(
+                                                        '${_communityList[idx]['createDate']}',
+                                                      ))
+                                                      .inMinutes
+                                                      .toString()) <
+                                                  60
+                                              ? '${int.parse(DateTime.now().difference(DateTime.parse(
+                                                    '${_communityList[idx]['createDate']}',
+                                                  )).inMinutes.toString())}분 전'
+                                              : int.parse(DateTime.now()
+                                                          .difference(
+                                                              DateTime.parse(
+                                                            '${_communityList[idx]['createDate']}',
+                                                          ))
+                                                          .inHours
+                                                          .toString()) <
+                                                      24
+                                                  ? '${int.parse(DateTime.now().difference(DateTime.parse(
+                                                        '${_communityList[idx]['createDate']}',
+                                                      )).inHours.toString())}시간 전'
+                                                  : '${int.parse(DateTime.now().difference(DateTime.parse(
+                                                        '${_communityList[idx]['createDate']}',
+                                                      )).inDays.toString())}일 전',
+                                      style: f16w400greyA,
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                    height: 16,
+                                  ),
+                                  Divider(
+                                    color: cameraBackColor,
+                                    height: 1,
+                                  ),
+                                  const SizedBox(
+                                    height: 16,
+                                  ),
+                                ],
+                              ),
+                            );
+                    }),
+              ),
+              floatingIcon: const Icon(Icons.edit),
+              floatingTap: () {
+                Get.to(()=>StoryWriteScreen());
+              },
+            ),
+    );
   }
 
   Future<void> _refresh() async {
@@ -189,9 +237,7 @@ class _StoryMainScreenState extends State<StoryMainScreen> {
     final us = Get.put(UserState());
     CollectionReference ref2 = FirebaseFirestore.instance.collection('block');
     QuerySnapshot snapshot2 = await ref2
-        .where('blockId',
-            isEqualTo:
-                '${us.userList[0].phoneNumber}') //us.userList[0].phoneNumber
+        .where('blockId', isEqualTo: '${us.userList[0].phoneNumber}') //us.userList[0].phoneNumber
         .where('collectionName', isEqualTo: 'story')
         .where('commentField', isEqualTo: 'false')
         .get();
@@ -199,7 +245,7 @@ class _StoryMainScreenState extends State<StoryMainScreen> {
     print('55555 : ${allData.length}');
     List ls = allData;
     blockList = [];
-    for (int i = 0; i < ls.length; i++) {
+    for(int i=0; i<ls.length; i++) {
       blockList.add(ls[i]['blockDocId']);
     }
 

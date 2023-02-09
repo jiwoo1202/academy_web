@@ -14,4 +14,8 @@ class TestState extends GetxController{
 
   final teacherNameList = [].obs;
   final individualTestGet = [].obs;
+
+
+  //test ind
+  final individualAnswer = [].obs;
 }

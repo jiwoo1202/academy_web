@@ -81,7 +81,8 @@ Future<void> firebaseIndividualTestUpload() async{
     // 'id' : us.number.value,
     'id' : '${us.userList[0].id}',
     'createDate' : '${DateTime.now()}',
-    'status' : '채점중',
+    'status' : '완료',
+    'isIndividual' : 'true',
     'answerDocid':ts.answerDocId.value,
     'teacher':as.getTeacherName.value
   }).then((doc) async {

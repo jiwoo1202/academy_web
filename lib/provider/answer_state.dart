@@ -27,6 +27,8 @@ class AnswerState extends GetxController{
 
 
   // individual
+  final hasFile = false.obs;
+  final indEditList = [].obs;
   final essayList = [].obs;
   final choiceList = [].obs;
   final individualTitle = [].obs;
@@ -34,4 +36,5 @@ class AnswerState extends GetxController{
   final individualFile = [].obs;
   final individualFilePath = [].obs;
   final editIndividual = [].obs;
+  final editIndividualImage = [].obs;
 }

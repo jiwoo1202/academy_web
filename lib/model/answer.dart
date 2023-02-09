@@ -6,6 +6,7 @@ class Answer {
   List individualFile;
   List individualTitle;
   List individualBody;
+  List images;
   String? isIndividual;
   String? answerCount;
   String? docId;
@@ -25,6 +26,7 @@ class Answer {
         required this.individualFile,
         required this.individualTitle,
         required this.individualBody,
+        required this.images,
         required this.isIndividual,
         required this.answerCount,
         required this.docId,
@@ -43,6 +45,7 @@ class Answer {
         answer = map['answer'].cast<String>(),
         individualTitle = map['individualTitle'].cast<String>(),
         individualBody = map['individualBody'].cast<String>(),
+        images = map['images'].cast<String>(),
         answerCount = map['answerCount'],
         isIndividual = map['isIndividual'],
         individualFile = map['individualFile'].cast<String>(),
@@ -64,6 +67,7 @@ class Answer {
       "individualFile": individualFile,
       "individualBody": individualBody,
       "individualTitle": individualTitle,
+      "images": images,
       "isIndividual": isIndividual,
       "answerCount": answerCount,
       "docId" : docId,
@@ -87,6 +91,7 @@ class Answer {
       individualFile: doc['individualFile'].cast<String>(),
       individualTitle: doc['individualTitle'].cast<String>(),
       individualBody: doc['individualBody'].cast<String>(),
+      images: doc['images'].cast<String>(),
       isIndividual: doc['isIndividual'],
       answerCount : doc['answerCount'],
       group: doc['group'],

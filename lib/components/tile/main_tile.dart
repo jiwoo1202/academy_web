@@ -15,6 +15,7 @@ class MainTile extends StatelessWidget {
   final bool isStudent;
   final VoidCallback switchOnTap;
   final VoidCallback? onTap;
+  final GestureLongPressCallback? onLongPressed;
 
   const MainTile(
       {Key? key,
@@ -25,13 +26,16 @@ class MainTile extends StatelessWidget {
       required this.isStudent,
       required this.title,
       this.onTap,
-      this.subject: '',   this.arrowString : ''})
+      this.subject: '',
+      this.arrowString: '',
+      this.onLongPressed})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
+      onLongPress: onLongPressed,
       child: Transform.translate(
         offset: const Offset(0, -44),
         child: Material(

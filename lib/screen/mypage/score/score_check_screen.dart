@@ -10,6 +10,7 @@ import '../../../provider/test_state.dart';
 import '../../../provider/user_state.dart';
 import '../../../util/colors.dart';
 import '../../../util/font.dart';
+import '../../main/student/test/individual/test_individual_screen.dart';
 import '../../main/student/test/test_check_screen.dart';
 
 class ScoreCheckScreen extends StatefulWidget {
@@ -29,7 +30,6 @@ class _ScoreCheckScreenState extends State<ScoreCheckScreen> {
     Future.delayed(Duration.zero,()async{
       final us = Get.put(UserState());
       await firebaseAllQuestionGet('${us.userList[0].id}');
-      print('asdasfasfas : ${us.userList[0].id}');
       setState(() {
         _isLoading = false;
       });
@@ -86,10 +86,20 @@ class _ScoreCheckScreenState extends State<ScoreCheckScreen> {
                       if(ts.myAnswer[index]['status'] == '채점중'){
                         showOnlyConfirmDialog(context, '아직 종료되지 않은 시험입니다');
                       }else{
-                        ts.testDocId.value = ts.myAnswer[index]['docId'];
-                        ts.answerDocId.value = ts.myAnswer[index]['answerDocid'];
-                        Get.to(() => TestCheckScreen(
-                        ));
+                        if(ts.myAnswer[index]['isIndividual'] == 'true'){
+                          ts.individualAnswer.value = ts.myAnswer[index]['answer'];
+                          Get.to(()=>TestIndividual(
+                            isChecked: 'true',
+                            docId: ts.myAnswer[index]['answerDocid'],
+                          ));
+                        }else{
+                          ts.testDocId.value = ts.myAnswer[index]['docId'];
+                          ts.answerDocId.value = ts.myAnswer[index]['answerDocid'];
+                          Get.to(() => TestCheckScreen(
+                              teacherName:ts.myAnswer[index]['teacher'],
+                              docId: ts.myAnswer[index]['answerDocid']
+                          ));
+                        }
                       }
                     },
                     switchOnTap: () {},

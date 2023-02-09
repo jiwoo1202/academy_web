@@ -1,18 +1,26 @@
+import 'package:academy/components/button/choose_button.dart';
 import 'package:academy/firebase/firebase_test.dart';
 import 'package:academy/provider/answer_state.dart';
+import 'package:academy/screen/main/student/test/test_main_screen.dart';
 import 'package:academy/util/padding.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../api/pdf/pdf_api.dart';
 import '../../../../provider/test_state.dart';
 import '../../../../util/colors.dart';
 
 import '../../../../util/font.dart';
 import '../../../login/login_main_screen.dart';
+import 'test_file.dart';
 
 class TestCheckScreen extends StatefulWidget {
   // final String docId;
-  const TestCheckScreen({Key? key}) : super(key: key);
+  final String? teacherName;
+  final String? docId;
+
+  const TestCheckScreen({Key? key, this.teacherName, this.docId})
+      : super(key: key);
 
   @override
   State<TestCheckScreen> createState() => _TestCheckScreenState();
@@ -59,6 +67,26 @@ class _TestCheckScreenState extends State<TestCheckScreen> {
             Get.offAllNamed(BottomNavigator.id);
           },
         ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: SizedBox(
+                width: 100,
+                child: ChooseButton(
+                    isTrue: true,
+                    title: '시험지',
+                    onTap: () async {
+                      final url =
+                          //
+                          'https://firebasestorage.googleapis.com/v0/b/academy-957f7.appspot.com/o/12345%2F${widget.teacherName}%2F${widget.docId}.pdf?alt=media&token=a8ae0347-fe42-4be2-a837-671b1adbdba6';
+                      final file = await PDFApi.loadNetwork(url);
+                      Get.back();
+                      Get.to(() => TestFilePage(
+                            file: file,
+                          ));
+                    })),
+          )
+        ],
         centerTitle: false,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(
@@ -96,82 +124,109 @@ class _TestCheckScreenState extends State<TestCheckScreen> {
                                   SizedBox(
                                     width: 10,
                                   ),
-                                 number.contains(ts.realAnswer[0]['answer'][index]) ? Text(
-                                    '내 답 : ${ts.mySingleAnswer[0]['answer'][index]}',
-                                    style: f16w700,
-                                  ) :  Container()
+                                  number.contains(
+                                          ts.realAnswer[0]['answer'][index])
+                                      ? Text(
+                                          '내 답 : ${ts.mySingleAnswer[0]['answer'][index]}',
+                                          style: f16w700,
+                                        )
+                                      : Container()
                                 ],
                               ),
                               SizedBox(
                                 height: 20,
                               ),
-                              number.contains(ts.realAnswer[0]['answer'][index]) ? Container(
-                                height: 52,
-                                  child: ListView.builder(
-                                    itemCount: 5,
-                                    shrinkWrap: true,
-                                    itemBuilder: (context,idx){
-                                      return SizedBox(
-                                        child: Row(
-                                          children: [
-                                            SizedBox(
-                                              width: 52,
-                                              height: 52,
-                                              child: Container(
-                                                decoration: BoxDecoration(
-                                                    color: ts.mySingleAnswer[0]['answer'][index] ==
-                                                        ts.realAnswer[0]['answer'][index] &&
-                                                        ts.mySingleAnswer[0]['answer'][index] == number[idx]
-                                                        ? nowColor
-                                                        : ts.mySingleAnswer[0]['answer'][index] !=
-                                                        ts.realAnswer[0]['answer'][index]&&ts.realAnswer[0]['answer'][index] == number[idx]?Colors.red:
-                                                    Colors.white,
-                                                    border: Border.all(width: 1,color: cameraBackColor),
-                                                    borderRadius:
-                                                    BorderRadius.all(
-                                                        Radius.circular(20))),
-                                                child: Row(
-                                                  mainAxisAlignment: MainAxisAlignment.center,
-                                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                                  children: [
-                                                    Text(
-                                                      '${idx+1}',
-                                                      textAlign: TextAlign.center,
-                                                      style: ts.mySingleAnswer[0]['answer'][index] ==
-                                                          ts.realAnswer[0]['answer'][index] &&
-                                                          ts.mySingleAnswer[0]['answer'][index] == number[idx]
-                                                          ? f16Whitew700
-                                                          : ts.realAnswer[0]['answer'][index] ==
-                                                          number[idx]
-                                                          ? f16Whitew700
-                                                          : f16w700,
+                              number.contains(ts.realAnswer[0]['answer'][index])
+                                  ? Container(
+                                      height: 52,
+                                      child: ListView.builder(
+                                        itemCount: 5,
+                                        shrinkWrap: true,
+                                        itemBuilder: (context, idx) {
+                                          return SizedBox(
+                                            child: Row(
+                                              children: [
+                                                SizedBox(
+                                                  width: 52,
+                                                  height: 52,
+                                                  child: Container(
+                                                    decoration: BoxDecoration(
+                                                        color: ts.mySingleAnswer[0]['answer'][index] == ts.realAnswer[0]['answer'][index] &&
+                                                                ts.mySingleAnswer[0]['answer'][index] ==
+                                                                    number[idx]
+                                                            ? nowColor
+                                                            : ts.mySingleAnswer[0]['answer'][index] != ts.realAnswer[0]['answer'][index] &&
+                                                                    ts.realAnswer[0]['answer'][index] ==
+                                                                        number[
+                                                                            idx]
+                                                                ? Colors.red
+                                                                : Colors.white,
+                                                        border: Border.all(
+                                                            width: 1,
+                                                            color:
+                                                                cameraBackColor),
+                                                        borderRadius:
+                                                            BorderRadius.all(
+                                                                Radius.circular(20))),
+                                                    child: Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .center,
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .center,
+                                                      children: [
+                                                        Text(
+                                                          '${idx + 1}',
+                                                          textAlign:
+                                                              TextAlign.center,
+                                                          style: ts.mySingleAnswer[0]['answer'][index] ==
+                                                                      ts.realAnswer[0]
+                                                                              ['answer'][
+                                                                          index] &&
+                                                                  ts.mySingleAnswer[0]
+                                                                              ['answer']
+                                                                          [
+                                                                          index] ==
+                                                                      number[
+                                                                          idx]
+                                                              ? f16Whitew700
+                                                              : ts.realAnswer[0]
+                                                                              ['answer']
+                                                                          [index] ==
+                                                                      number[idx]
+                                                                  ? f16Whitew700
+                                                                  : f16w700,
+                                                        ),
+                                                      ],
                                                     ),
-                                                  ],
+                                                  ),
                                                 ),
-                                              ),
+                                                SizedBox(
+                                                  width: 10,
+                                                )
+                                              ],
                                             ),
-                                            SizedBox(
-                                              width: 10,
-                                            )
-                                          ],
+                                          );
+                                        },
+                                        scrollDirection: Axis.horizontal,
+                                      ))
+                                  : Container(
+                                      width: Get.width,
+                                      padding: ph24v12,
+                                      decoration: BoxDecoration(
+                                        color: textFormColor,
+                                        border: Border.all(
+                                          width: 1,
+                                          color: blurColor,
                                         ),
-                                      );
-                                    },
-                                    scrollDirection: Axis.horizontal,
-                                  )) :
-                              Container(
-                                width: Get.width,
-                                padding: ph24v12,
-                                decoration: BoxDecoration(
-                                  color: textFormColor,
-                                  border: Border.all(
-                                    width: 1,
-                                    color:blurColor,
-                                  ),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text('${ts.mySingleAnswer[0]['answer'][index]}',style: f18w700,),
-                              ),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Text(
+                                        '${ts.mySingleAnswer[0]['answer'][index]}',
+                                        style: f18w700,
+                                      ),
+                                    ),
                               SizedBox(
                                 height: 20,
                               ),

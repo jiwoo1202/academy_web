@@ -16,8 +16,10 @@ import '../../../../login/login_main_screen.dart';
 
 class TestIndividual extends StatefulWidget {
   final String docId;
+  final String isChecked;
 
-  const TestIndividual({Key? key, required this.docId}) : super(key: key);
+  const TestIndividual({Key? key, required this.docId, this.isChecked: ''})
+      : super(key: key);
 
   @override
   State<TestIndividual> createState() => _TestIndividualState();
@@ -26,6 +28,7 @@ class TestIndividual extends StatefulWidget {
 class _TestIndividualState extends State<TestIndividual> {
   final controller = PageController();
   int _pageIndex = 0;
+  int correct = 0;
   List<String> number = ['1', '2', '3', '4', '5'];
   List<String> _answer = [];
   List _finalAnswer = [];
@@ -42,11 +45,19 @@ class _TestIndividualState extends State<TestIndividual> {
       _controller = List.generate(ts.individualTestGet[0]['answer'].length,
           (i) => TextEditingController());
       print('answer : ${_answer}');
+      _score();
       setState(() {
         _isLoading = false;
       });
     });
     super.initState();
+  }
+
+  bool isNumeric(String? s) {
+    if (s == null) {
+      return false;
+    }
+    return double.tryParse(s) != null;
   }
 
   @override
@@ -63,7 +74,7 @@ class _TestIndividualState extends State<TestIndividual> {
                 title: Column(
                   children: [
                     Text(
-                      '${ts.individualTestGet[0]['teacher']} 선생님',
+                      '${ts.individualTestGet[0]['teacher']} 선생님(총점 : ${((correct/ts.individualTestGet[0]['answer'].length)* 100).ceil()}점)',
                       style: f16w700,
                     ),
                     Text(
@@ -139,16 +150,22 @@ class _TestIndividualState extends State<TestIndividual> {
                           SizedBox(
                             height: 20,
                           ),
-                          ts.individualTestGet[0]['images'][index] != ''? ExtendedImage.network(
-                            'https://firebasestorage.googleapis.com/v0/b/academy-957f7.appspot.com/o/teacher%2F${ts.individualTestGet[0]['teacher']}%2F${ts.individualTestGet[0]['docId']}%2F${ts.individualTestGet[0]['images'][index]}.png?alt=media',
-                            fit: BoxFit.fill,
-                            width: Get.width,
-                            cache: true,
-                            enableLoadState: false,
-                          ) : Container(),
-                          ts.individualTestGet[0]['images'][index] != '' ?  SizedBox(
-                            height: 20,
-                          ) : Container(),
+                          !ts.individualTestGet[0]['images'][index]
+                                  .contains('no')
+                              ? ExtendedImage.network(
+                                  // 'https://firebasestorage.googleapis.com/v0/b/academy-957f7.appspot.com/o/teacher%2F1234%2F6EhFcIYaHuOmpsH9H87N%2F2023-02-08%2013%3A32%3A44.647799?alt=media&token=947e3a38-3426-4605-85df-ad874a4c0b9a',
+                                  'https://firebasestorage.googleapis.com/v0/b/academy-957f7.appspot.com/o/teacher%2F${ts.individualTestGet[0]['teacher']}%2F${ts.individualTestGet[0]['docId']}%2F${ts.individualTestGet[0]['images'][index]}?alt=media',
+                                  fit: BoxFit.fill,
+                                  width: Get.width,
+                                  cache: true,
+                                  enableLoadState: false,
+                                )
+                              : Container(),
+                          ts.individualTestGet[0]['images'][index] != ''
+                              ? SizedBox(
+                                  height: 20,
+                                )
+                              : Container(),
                           Text(
                             '${ts.individualTestGet[0]['individualBody'][index]}',
                             style: f20w500,
@@ -157,14 +174,18 @@ class _TestIndividualState extends State<TestIndividual> {
                             height: 20,
                           ),
                           Text(
-                            '정답',
+                            widget.isChecked == 'true'
+                                ? '내가 입력한 답 : ${ts.individualAnswer[index]}'
+                                : '정답',
                             style: f16w700,
                           ),
                           SizedBox(
                             height: 10,
                           ),
-                          ts.individualTestGet[0]['answer'][index] == 'essay'
+                          !isNumeric(ts.individualTestGet[0]['answer'][index])
                               ? TextField(
+                                  enabled:
+                                      widget.isChecked == 'true' ? false : true,
                                   controller: _controller[index],
                                   onChanged: (v) {
                                     _answer[index] = _controller[index].text;
@@ -181,8 +202,12 @@ class _TestIndividualState extends State<TestIndividual> {
                                     border: OutlineInputBorder(
                                         borderSide: BorderSide.none,
                                         borderRadius: BorderRadius.circular(8)),
-                                    hintText: '내용을 입력해주세요',
-                                    hintStyle: f16w400grey8,
+                                    hintText: widget.isChecked == 'true'
+                                        ? '정답 : ${ts.individualTestGet[0]['answer'][index]}'
+                                        : '내용을 입력해주세요',
+                                    hintStyle: widget.isChecked == 'true'
+                                        ? f24w500
+                                        : f16w400grey8,
                                   ),
                                 )
                               : Container(
@@ -196,14 +221,17 @@ class _TestIndividualState extends State<TestIndividual> {
                                                 Row(
                                                   children: [
                                                     TextButton(
-                                                        onPressed: () {
-                                                          // as.choiceList
-                                                          //     .value[widget.idx] =
-                                                          // '${i + 1}';
-                                                          _answer[index] =
-                                                              '${i + 1}';
-                                                          setState(() {});
-                                                        },
+                                                        onPressed: widget.isChecked ==
+                                                                'true'
+                                                            ? null
+                                                            : () {
+                                                                // as.choiceList
+                                                                //     .value[widget.idx] =
+                                                                // '${i + 1}';
+                                                                _answer[index] =
+                                                                    '${i + 1}';
+                                                                setState(() {});
+                                                              },
                                                         style: TextButton
                                                             .styleFrom(
                                                           shape: RoundedRectangleBorder(
@@ -219,12 +247,26 @@ class _TestIndividualState extends State<TestIndividual> {
                                                               Size(52, 52),
                                                           foregroundColor:
                                                               Colors.black,
-                                                          backgroundColor:
-                                                              _answer[index] ==
-                                                                      number[i]
-                                                                  ? nowColor
-                                                                  : Colors
-                                                                      .white,
+                                                          backgroundColor: _answer[index] ==
+                                                                      number[
+                                                                          i] ||
+                                                                  (ts.individualAnswer[index] == ts.individualTestGet[0]['answer'][index]) &&
+                                                                      (ts.individualAnswer[index] ==
+                                                                          number[
+                                                                              i]) &&
+                                                                      widget.isChecked ==
+                                                                          'true'
+                                                              ? nowColor
+                                                              : (ts.individualAnswer[index] !=
+                                                                          ts.individualTestGet[0]['answer']
+                                                                              [
+                                                                              index]) &&
+                                                                      (ts.individualTestGet[0]['answer']
+                                                                              [index] ==
+                                                                          number[i]) &&
+                                                                      widget.isChecked == 'true'
+                                                                  ? Colors.red
+                                                                  : Colors.white,
                                                           padding:
                                                               EdgeInsets.only(
                                                                   right: 12,
@@ -234,9 +276,19 @@ class _TestIndividualState extends State<TestIndividual> {
                                                                   .shrinkWrap,
                                                         ),
                                                         child: Text('${i + 1}',
-                                                            style: _answer[
-                                                                        index] ==
-                                                                    number[i]
+                                                            style: _answer[index] ==
+                                                                        number[
+                                                                            i] ||
+                                                                    (ts.individualAnswer[index] == ts.individualTestGet[0]['answer'][index]) &&
+                                                                        (ts.individualAnswer[index] ==
+                                                                            number[
+                                                                                i]) &&
+                                                                        widget.isChecked ==
+                                                                            'true' ||
+                                                                    (ts.individualAnswer[index] != ts.individualTestGet[0]['answer'][index]) &&
+                                                                        (ts.individualTestGet[0]['answer'][index] ==
+                                                                            number[i]) &&
+                                                                        widget.isChecked == 'true'
                                                                 ? f16Whitew700
                                                                 : f16w700)),
                                                     SizedBox(
@@ -277,33 +329,50 @@ class _TestIndividualState extends State<TestIndividual> {
                               : Text('')),
                       GestureDetector(
                           onTap: () {
-                            if (_pageIndex ==
-                                ts.individualTestGet[0]['answer'].length - 1) {
-                              showComponentDialog(context, '제출하시겠습니까?',
-                                  () async {
-                                ts.answer.value = _answer;
-                                await firebaseIndividualTestUpload();
-                                Get.back();
-                                showConfirmTapDialog(
-                                    context, '수고하셨습니다\n\n작성하신 답안이 정상적으로 제출 되었습니다',
-                                        () {
-                                      Get.offAll(() => BottomNavigator());
-                                    });
-                              });
+                            if (widget.isChecked != 'true') {
+                              if (_pageIndex ==
+                                  ts.individualTestGet[0]['answer'].length -
+                                      1) {
+                                showComponentDialog(context, '제출하시겠습니까?',
+                                    () async {
+                                  ts.answer.value = _answer;
+                                  await firebaseIndividualTestUpload();
+                                  Get.back();
+                                  showConfirmTapDialog(context,
+                                      '수고하셨습니다\n\n작성하신 답안이 정상적으로 제출 되었습니다', () {
+                                    Get.offAll(() => BottomNavigator());
+                                  });
+                                });
+                              } else {
+                                controller.animateToPage(
+                                    controller.page!.toInt() + 1,
+                                    duration: Duration(milliseconds: 200),
+                                    curve: Curves.linear);
+                              }
                             } else {
-                              controller.animateToPage(
-                                  controller.page!.toInt() + 1,
-                                  duration: Duration(milliseconds: 200),
-                                  curve: Curves.linear);
+                              if (_pageIndex ==
+                                  ts.individualTestGet[0]['answer'].length -
+                                      1) {
+                                Get.back();
+                              } else {
+                                controller.animateToPage(
+                                    controller.page!.toInt() + 1,
+                                    duration: Duration(milliseconds: 200),
+                                    curve: Curves.linear);
+                              }
                             }
-
                           },
                           child: _pageIndex ==
                                   ts.individualTestGet[0]['answer'].length - 1
-                              ? Text(
-                                  '제출',
-                                  style: f18w700primary,
-                                )
+                              ? widget.isChecked != 'true'
+                                  ? Text(
+                                      '제출',
+                                      style: f18w700primary,
+                                    )
+                                  : Text(
+                                      '완료',
+                                      style: f18w700primary,
+                                    )
                               : Text(
                                   '다음',
                                   style: f18w700primary,
@@ -314,5 +383,16 @@ class _TestIndividualState extends State<TestIndividual> {
               ),
             ),
     );
+  }
+
+  void _score() {
+    final ts = Get.put(TestState());
+
+    for (int i = 0; i < ts.individualTestGet[0]['answer'].length; i++) {
+      if (ts.individualAnswer[i] == ts.individualTestGet[0]['answer'][i]) {
+        print('yes');
+        correct++;
+      }
+    }
   }
 }

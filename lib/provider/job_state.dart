@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 class JobState extends GetxController{
   final answer = <String>[].obs;
   final jobDocId = ''.obs;
+  final jobHasImage = ''.obs;
   final jobbody = ''.obs;
   final jobTeacher = ''.obs;
   final realAnswer = [].obs;
@@ -11,6 +12,7 @@ class JobState extends GetxController{
   final commentBody = [].obs;
   final userL = [].obs;
   final commentL = [].obs;
+  final selectJobTile = [].obs;
 
   final jobTitle = ''.obs; //추가
   final jobList = [].obs; //추가

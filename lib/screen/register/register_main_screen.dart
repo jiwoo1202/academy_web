@@ -119,7 +119,7 @@ class _RegisterMainScreenState extends State<RegisterMainScreen>
               Row(
                 children: [
                   SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.7,
+                    width: MediaQuery.of(context).size.width * 0.6,
                     child: TextFormFields(
                         controller: _idCon,
                         onChanged: (v) {
@@ -222,8 +222,8 @@ class _RegisterMainScreenState extends State<RegisterMainScreen>
               ),
               Row(
                 children: [
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.7,
+                  Expanded(
+                    flex: 2,
                     child: TextFormFields(
                         controller: _phoneCon,
                         onChanged: (v) {
@@ -289,8 +289,8 @@ class _RegisterMainScreenState extends State<RegisterMainScreen>
               ),
               Row(
                 children: [
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.7,
+                  Expanded(
+                  flex: 2,
                     child: TextFormFields(
                         controller: _otpCon,
                         inputFormatters: [
@@ -305,6 +305,7 @@ class _RegisterMainScreenState extends State<RegisterMainScreen>
                     width: 10,
                   ),
                   Expanded(
+                    flex: 1,
                     child: Container(
                       decoration: BoxDecoration(
                         color: Color(0xffEBEBEB),

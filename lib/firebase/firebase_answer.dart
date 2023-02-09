@@ -19,6 +19,7 @@ Future<void> firebaseAnswerUpload(UploadTask? uploadTask) async {
       individualBody: [],
       individualTitle: [],
       individualFile: [],
+      images : [],
       createDate: '${DateTime.now()}',
       answer: as.answer.toList(),
       answerCount: '',
@@ -156,15 +157,34 @@ Future<void> getNameAndDate(String docId) async {
 }
 
 // individual test 수정
-// Future<void> getIndividualTest(String docId) async {
-//   final as = Get.put(AnswerState());
-//
-//   CollectionReference ref = FirebaseFirestore.instance.collection('answer');
-//   QuerySnapshot snapshot = await ref.where('docId', isEqualTo: docId).get();
-//
-//   final allData = snapshot.docs.map((doc) => doc.data()).toList();
-//
-//   as.editIndividual.value = allData;
-//
-//   // print('11||${as.answerlength.value}');
-// }
+Future<void> deleteIndividualTest(String docId) async {
+  CollectionReference ref =
+  FirebaseFirestore.instance.collection('answer');
+  QuerySnapshot snapshot = await ref
+      .where('docId', isEqualTo:docId)
+      .get();
+  snapshot.docs[0].reference.delete();
+}
+
+class FirebaseStorageApi {
+  static Future<void> deleteFolder({required String path}) async {
+    List<String> paths = [];
+    paths = await _deleteFolder(path, paths);
+    for (String path in paths) {
+      await FirebaseStorage.instance.ref().child(path).delete();
+    }
+  }
+
+  static Future<List<String>> _deleteFolder(String folder, List<String> paths) async {
+    ListResult list = await FirebaseStorage.instance.ref().child(folder).listAll();
+    List<Reference> items = list.items;
+    List<Reference> prefixes = list.prefixes;
+    for (Reference item in items) {
+      paths.add(item.fullPath);
+    }
+    for (Reference subfolder in prefixes) {
+      paths = await _deleteFolder(subfolder.fullPath, paths);
+    }
+    return paths;
+  }
+}

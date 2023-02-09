@@ -12,9 +12,12 @@ import '../../../../util/font.dart';
 
 class PdfUploadIndividualScreen extends StatefulWidget {
   final int idx;
+  final String edit;
 
-  const PdfUploadIndividualScreen({Key? key, required this.idx,  })
-      : super(key: key);
+  const PdfUploadIndividualScreen({
+    Key? key,
+    required this.idx,   this.edit : '',
+  }) : super(key: key);
 
   @override
   State<PdfUploadIndividualScreen> createState() =>
@@ -82,6 +85,7 @@ class _PdfUploadIndividualScreenState extends State<PdfUploadIndividualScreen> {
   Widget build(BuildContext context) {
     final as = Get.put(AnswerState());
     final us = Get.put(UserState());
+    print('here 1111 : ${as.individualFile}');
     return GestureDetector(
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: Scaffold(
@@ -110,6 +114,32 @@ class _PdfUploadIndividualScreenState extends State<PdfUploadIndividualScreen> {
             },
           ),
           centerTitle: false,
+          actions: [
+            GestureDetector(
+              onTap: () {
+                as.individualTitle.value[widget.idx] = _testNameController.text;
+                as.individualBody.value[widget.idx] = _testBodyCon.text;
+                if (_testEssayCon.text == '' && firstTrue == true) {
+                  as.essayList.value[widget.idx] = '서술형';
+                } else {
+                  as.essayList.value[widget.idx] = _testEssayCon.text;
+                }
+
+                if (firstTrue) {
+                  as.choiceList.value[widget.idx] = '';
+                }
+                Get.back();
+              },
+              child: Container(
+                padding: const EdgeInsets.only(right: 28),
+                child: const Center(
+                    child: Text(
+                  '저장',
+                  style: f16w700primary,
+                )),
+              ),
+            )
+          ],
           title: Text(
             '문제 추가',
             style: f21w700grey5,
@@ -252,11 +282,8 @@ class _PdfUploadIndividualScreenState extends State<PdfUploadIndividualScreen> {
                                 Flexible(
                                   child: Container(
                                     padding: new EdgeInsets.only(right: 13.0),
-                                    child: Text(
-                                        _fileName == ''
-                                            ? '${pickedFile?.name}'
-                                            : _fileName,
-                                        style: f16w400el),
+                                    child:
+                                        Text('파일이 첨부돼있습니다', style: f16w500),
                                   ),
                                 ),
                                 GestureDetector(
@@ -264,8 +291,12 @@ class _PdfUploadIndividualScreenState extends State<PdfUploadIndividualScreen> {
                                     pickedFile = null;
                                     _fileName = '';
                                     as.individualFile.value[widget.idx] = '';
-                                    as.individualFilePath.value[widget.idx] =
-                                        '';
+                                    if(widget.edit == 'true'){
+                                      as.editIndividualImage.value[widget.idx] = 'no';
+                                    }else{
+                                      as.individualFilePath.value[widget.idx] =
+                                      '';
+                                    }
                                     setState(() {});
                                   },
                                   child: Icon(
@@ -297,6 +328,8 @@ class _PdfUploadIndividualScreenState extends State<PdfUploadIndividualScreen> {
                       width: Get.width * 0.25,
                       child: ElevatedButton(
                           onPressed: () async {
+
+                            print('hereeee22222------ : ${as.individualFile}');
                             FilePickerResult? result =
                                 await FilePicker.platform.pickFiles(
                               allowedExtensions: [
@@ -311,11 +344,20 @@ class _PdfUploadIndividualScreenState extends State<PdfUploadIndividualScreen> {
 
                             if (result == null) return;
 
+                            as.hasFile.value = true;
                             pickedFile = result.files.first;
-                            as.individualFile.value[widget.idx] =
-                                pickedFile!.name;
-                            as.individualFilePath.value[widget.idx] =
-                                pickedFile!.path;
+
+                            if(widget.edit == 'true'){
+                              as.editIndividualImage.value[widget.idx] =
+                                  pickedFile!.path;
+                              as.individualFile.value[widget.idx] = 'yes';
+                              as.indEditList.value[widget.idx] = 'edit';
+                              print('hereeee------ : ${as.individualFile}');
+                            }else{
+                              as.individualFile.value[widget.idx] = 'yes';
+                              as.individualFilePath.value[widget.idx] =
+                                  pickedFile!.path;
+                            }
                             setState(() {});
                           },
                           style: ButtonStyle(
@@ -344,33 +386,33 @@ class _PdfUploadIndividualScreenState extends State<PdfUploadIndividualScreen> {
                       '답안',
                       style: f18w400,
                     ),
-                    firstTrue ? Spacer() : Container(),
-                    firstTrue
-                        ? Text(
-                            '서술형',
-                            style: f18w400,
-                          )
-                        : Container(),
-                    firstTrue
-                        ? SizedBox(
-                            width: 10,
-                          )
-                        : Container(),
-                    firstTrue
-                        ? GestureDetector(
-                            behavior: HitTestBehavior.opaque,
-                            onTap: () {
-                              secondTrue = !secondTrue;
-                              _testEssayCon.text = '';
-                              // as.essayList.value[widget.idx] = '$secondTrue';
-                              // print('주관식');
-                              setState(() {});
-                            },
-                            child: SvgPicture.asset(secondTrue
-                                ? 'assets/checkBox.svg'
-                                : 'assets/notcheckBox.svg'),
-                          )
-                        : Container()
+                    // firstTrue ? Spacer() : Container(),
+                    // firstTrue
+                    //     ? Text(
+                    //         '서술형',
+                    //         style: f18w400,
+                    //       )
+                    //     : Container(),
+                    // firstTrue
+                    //     ? SizedBox(
+                    //         width: 10,
+                    //       )
+                    //     : Container(),
+                    // firstTrue
+                    //     ? GestureDetector(
+                    //         behavior: HitTestBehavior.opaque,
+                    //         onTap: () {
+                    //           secondTrue = !secondTrue;
+                    //           _testEssayCon.text = '';
+                    //           // as.essayList.value[widget.idx] = '$secondTrue';
+                    //           // print('주관식');
+                    //           setState(() {});
+                    //         },
+                    //         child: SvgPicture.asset(secondTrue
+                    //             ? 'assets/checkBox.svg'
+                    //             : 'assets/notcheckBox.svg'),
+                    //       )
+                    //     : Container()
                   ],
                 ),
                 const SizedBox(
@@ -497,5 +539,24 @@ class _PdfUploadIndividualScreenState extends State<PdfUploadIndividualScreen> {
         ),
       ),
     );
+  }
+
+  Future<bool> _useBackKey(BuildContext context) async {
+    final as = Get.put(AnswerState());
+
+    as.individualTitle.value[widget.idx] = _testNameController.text;
+    as.individualBody.value[widget.idx] = _testBodyCon.text;
+    if (_testEssayCon.text == '' && firstTrue == true) {
+      as.essayList.value[widget.idx] = '서술형';
+    } else {
+      as.essayList.value[widget.idx] = _testEssayCon.text;
+    }
+
+    if (firstTrue) {
+      as.choiceList.value[widget.idx] = '';
+    }
+    Get.back();
+
+    return false;
   }
 }

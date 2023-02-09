@@ -30,6 +30,7 @@ class PdfIndMainScreen extends StatefulWidget {
   final List? body;
   final List? title;
   final List? image;
+  final List? file;
 
   const PdfIndMainScreen(
       {Key? key,
@@ -40,7 +41,8 @@ class PdfIndMainScreen extends StatefulWidget {
       this.title,
       this.image,
       this.password: '',
-      this.category: ''})
+      this.category: '',
+      this.file})
       : super(key: key);
 
   @override
@@ -53,9 +55,10 @@ class _PdfIndMainScreenState extends State<PdfIndMainScreen> {
   TextEditingController _testNameController = TextEditingController();
   TextEditingController _testPwController = TextEditingController();
   TextEditingController _testCountController = TextEditingController();
-  final _obscureText = false.obs;
+  bool _obscureText = false;
   bool _imageLoading = false;
   List _answerList = [];
+  List _imagesList = [];
 
   @override
   void initState() {
@@ -74,19 +77,25 @@ class _PdfIndMainScreenState extends State<PdfIndMainScreen> {
     _testCountController.text = '1';
 
     if (widget.edit == 'true') {
+      as.individualFile.value = [];
       _testPwController.text = widget.password;
       _testNameController.text = widget.category;
       _testCountController.text = '${widget.answer!.length}';
       _answerList = widget.answer!;
-      as.individualFile.value = widget.image!;
       as.individualTitle.value = widget.title!;
       as.individualBody.value = widget.body!;
+      for(int i = 0; i < widget.file!.length; i++){
+        print('how many');
+        widget.file![i] == 'edit' ||  widget.file![i] == 'yes' ? as.individualFile.value.add('yes') : as.individualFile.value.add('');
+        widget.file![i] == 'edit' ||  widget.file![i] == 'yes' ? as.indEditList.value.add('yes') : as.indEditList.value.add('');
+      }
+      as.editIndividualImage.value = widget.image!;
       as.essayList.value = List.generate(widget.answer!.length, (index) => '');
       as.choiceList.value = List.generate(widget.answer!.length, (index) => '');
-      for(int i = 0; i < widget.answer!.length; i ++){
-        if(isNumeric(widget.answer![i])&& widget.answer![i].length == 1){
+      for (int i = 0; i < widget.answer!.length; i++) {
+        if (isNumeric(widget.answer![i]) && widget.answer![i].length == 1) {
           as.choiceList.value[i] = widget.answer![i];
-        }else{
+        } else {
           as.essayList.value[i] = widget.answer![i];
         }
       }
@@ -119,409 +128,436 @@ class _PdfIndMainScreenState extends State<PdfIndMainScreen> {
     final us = Get.put(UserState());
     return GestureDetector(
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
-      child: Scaffold(
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          elevation: 0,
-          leading: IconButton(
-            icon: Icon(
-              Icons.arrow_back_ios,
-              color: Colors.black,
+      child: WillPopScope(
+        onWillPop: () {
+          return _useBackKey(context);
+        },
+        child: Scaffold(
+          appBar: AppBar(
+            backgroundColor: Colors.white,
+            elevation: 0,
+            leading: IconButton(
+              icon: Icon(
+                Icons.arrow_back_ios,
+                color: Colors.black,
+              ),
+              onPressed: () {
+                showComponentDialog(context, '작성을 취소하시겠습니까?', () {
+                  Get.back();
+                  Get.back();
+                });
+              },
             ),
-            onPressed: () {
-              showComponentDialog(context, '작성을 취소하시겠습니까?', () {
-                Get.back();
-                Get.back();
-              });
-            },
-          ),
-          centerTitle: false,
-          title: Text(
-            '문제 추가(개별)',
-            style: f21w700grey5,
-          ),
-          actions: [
-            GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () async {
-                  print('asd: ${pickedFile} , ${pickedFile?.name}');
-                  as.answer.clear();
-                  for (int i = 0; i < _answerList.length; i++) {
-                    if (as.essayList[i] != '') {
-                      as.answer.add('${as.essayList[i]}');
-                    } else {
-                      as.answer.add(as.choiceList[i]);
+            centerTitle: false,
+            title: Text(
+              '문제 추가(개별)',
+              style: f21w700grey5,
+            ),
+            actions: [
+              GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () async {
+                    print('asd: ${pickedFile} , ${pickedFile?.name}');
+                    as.answer.clear();
+                    for (int i = 0; i < _answerList.length; i++) {
+                      if (as.essayList[i] != '') {
+                        as.answer.add('${as.essayList[i]}');
+                      } else {
+                        as.answer.add(as.choiceList[i]);
+                      }
                     }
-                  }
 
-                  as.group.value = '';
-                  as.password.value = _testPwController.text;
-                  as.pdfCategory.value = _testNameController.text;
-                  as.pdfName.value = '${DateTime.now()}';
-                  as.teacher.value = us.userList[0].id!;
+                    as.group.value = '';
+                    as.password.value = _testPwController.text;
+                    as.pdfCategory.value = _testNameController.text;
+                    as.pdfName.value = '${DateTime.now()}';
+                    as.teacher.value = us.userList[0].id!;
 
-                  showComponentDialog(context, widget.edit == 'true' ? '수정하시겠습니까?' : '업로드하시겠습니까?', () async {
-                    Get.back();
-                    if(widget.edit == 'true'){
-                      await _update(widget.docId);
-                     showConfirmTapDialog(context, '업로드를 완료했습니다', () {
-                       Get.offAll(() => BottomNavigator());
-                     });
-                    }else{
-                      await firebaseAnswerUploadIndividual(uploadTask);
-                    }
-                  });
-                  // as.pdfUploadName.value = '${pickedFile?.name}';
-                  // as.path.value = pickedFile!.path!;
-                  // await _uploadFile('12345', as.docId.value);
-                },
-                child: Container(
-                  padding: const EdgeInsets.only(right: 28),
-                  child: const Center(
+                    print('wdijadoawjdioawj : ${as.individualFile}');
+
+                    showComponentDialog(context,
+                        widget.edit == 'true' ? '수정하시겠습니까?' : '업로드하시겠습니까?',
+                        () async {
+                      Get.back();
+                      if (widget.edit == 'true') {
+                        await _update(widget.docId);
+                        showConfirmTapDialog(context, '업로드를 완료했습니다', () {
+                          Get.offAll(() => BottomNavigator());
+                        });
+                      } else {
+                        var contain =
+                            as.individualFile.where((element) => element != "");
+
+                        await firebaseAnswerUploadIndividual(
+                            uploadTask, contain.isEmpty);
+                        // print(contain.isEmpty);
+                      }
+                    });
+                    // as.pdfUploadName.value = '${pickedFile?.name}';
+                    // as.path.value = pickedFile!.path!;
+                    // await _uploadFile('12345', as.docId.value);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.only(right: 28),
+                    child: const Center(
+                        child: Text(
+                      '저장',
+                      style: f16w700primary,
+                    )),
+                  ))
+            ],
+          ),
+          body: SingleChildScrollView(
+            physics: const ClampingScrollPhysics(),
+            child: Container(
+              width: Get.width,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                      padding: EdgeInsets.symmetric(horizontal: 24),
                       child: Text(
-                    '저장',
-                    style: f16w700primary,
-                  )),
-                ))
-          ],
-        ),
-        body: SingleChildScrollView(
-          physics: const ClampingScrollPhysics(),
-          child: Container(
-            width: Get.width,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                    padding: EdgeInsets.symmetric(horizontal: 24),
-                    child: Text(
-                      '시험명',
-                      style: f18w400,
-                    )),
-                const SizedBox(
-                  height: 10,
-                ),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 24),
-                  child: TextFormFields(
-                    controller: _testNameController,
-                    hintText: '시험 명을 입력해주세요',
-                    surffixIcon: '0',
-                    obscureText: true,
+                        '시험명',
+                        style: f18w400,
+                      )),
+                  const SizedBox(
+                    height: 10,
                   ),
-                  width: Get.width,
-                ),
-                const SizedBox(
-                  height: 16,
-                ),
-                Container(
+                  Container(
                     padding: EdgeInsets.symmetric(horizontal: 24),
-                    child: Text(
-                      '문항수',
-                      style: f18w400,
-                    )),
-                const SizedBox(
-                  height: 10,
-                ),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 24),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                          decoration: BoxDecoration(
-                            borderRadius:
-                                BorderRadius.all(Radius.circular(8.0)),
-                            color: testCountColor,
-                          ),
-                          width: Get.width * 0.6,
-                          child: TextFormField(
-                            controller: _testCountController,
-                            style: f16w400,
-                            textAlign: TextAlign.center,
-                            textAlignVertical: TextAlignVertical.center,
-                            decoration: InputDecoration(
-                              border: InputBorder.none,
-                              prefixIcon: InkWell(
-                                onTap: () {
-                                  _answerList.removeLast();
-                                  as.essayList.value.removeLast();
-                                  as.individualTitle.value.removeLast();
-                                  as.individualBody.value.removeLast();
-                                  as.individualFile.value.removeLast();
-                                  as.individualFilePath.value.removeLast();
-                                  as.choiceList.value.removeLast();
-                                  setState(() {
-                                    // final x = _testCountController.text.obs;
-
-                                    ///_testCountController -
-                                    _testCountController.text =
-                                        (_testCountController.text != '0'
-                                                ? int.parse(_testCountController
-                                                        .text) -
-                                                    1
-                                                : 0)
-                                            .toString();
-                                  });
-                                },
-                                child: Material(
-                                  elevation: 0.0,
-                                  color: textFormColor,
-                                  shadowColor: textFormColor,
-                                  borderRadius: BorderRadius.only(
-                                    topLeft: Radius.circular(8.0),
-                                    bottomLeft: Radius.circular(8.0),
-                                  ),
-                                  child: Container(
-                                    width: 40,
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 18, vertical: 14),
-                                    child: SvgPicture.asset(
-                                      'assets/icon/minus.svg',
-                                      height: 20,
-                                      width: 20,
-                                      color: teacherColor,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              suffixIcon: InkWell(
-                                onTap: () {
-                                  _answerList.add('1');
-                                  as.essayList.value.add('');
-                                  as.individualTitle.value.add('');
-                                  as.individualBody.value.add('');
-                                  as.individualFile.value.add('');
-                                  as.individualFilePath.value.add('');
-                                  as.choiceList.value.add('');
-                                  setState(() {
-                                    ///_testCountController +
-                                    _testCountController.text =
-                                        (int.parse(_testCountController.text) +
-                                                1)
-                                            .toString();
-                                  });
-                                },
-                                child: Material(
-                                  elevation: 0.0,
-                                  color: textFormColor,
-                                  shadowColor: textFormColor,
-                                  borderRadius: BorderRadius.only(
-                                    topRight: Radius.circular(8.0),
-                                    bottomRight: Radius.circular(8.0),
-                                  ),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 18, vertical: 14),
-                                    child: SvgPicture.asset(
-                                      'assets/icon/plus.svg',
-                                      height: 20,
-                                      width: 20,
-                                      color: teacherColor,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              hintText: '20',
-                              hintStyle: f16w400grey8,
+                    child: TextFormFields(
+                      controller: _testNameController,
+                      hintText: '시험 명을 입력해주세요',
+                      surffixIcon: '0',
+                      obscureText: true,
+                    ),
+                    width: Get.width,
+                  ),
+                  const SizedBox(
+                    height: 16,
+                  ),
+                  Container(
+                      padding: EdgeInsets.symmetric(horizontal: 24),
+                      child: Text(
+                        '문항수',
+                        style: f18w400,
+                      )),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 24),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                            decoration: BoxDecoration(
+                              borderRadius:
+                                  BorderRadius.all(Radius.circular(8.0)),
+                              color: testCountColor,
                             ),
-                          )),
-                      SizedBox(
-                        width: 4,
-                      ),
-                      Container(
-                        width: Get.width * 0.25,
-                        child: ElevatedButton(
-                            onPressed: () async {
-                              try {
-                                if (int.tryParse(_testCountController.text) !=
-                                    null) {
-                                  if (int.parse(_testCountController.text) <
-                                      _answerList.length) {
-                                    _answerList.removeRange(
-                                        int.parse(_testCountController.text),
-                                        _answerList.length);
-                                    as.essayList.value.removeRange(
-                                        int.parse(_testCountController.text),
-                                        _answerList.length);
-                                    as.individualTitle.value.removeRange(
-                                        int.parse(_testCountController.text),
-                                        _answerList.length);
-                                    as.individualBody.value.removeRange(
-                                        int.parse(_testCountController.text),
-                                        _answerList.length);
-                                    as.individualFile.value.removeRange(
-                                        int.parse(_testCountController.text),
-                                        _answerList.length);
-                                    as.individualFilePath.value.removeRange(
-                                        int.parse(_testCountController.text),
-                                        _answerList.length);
-                                    as.choiceList.value.removeRange(
-                                        int.parse(_testCountController.text),
-                                        _answerList.length);
-                                  }
-                                  if (int.parse(_testCountController.text) >
-                                      _answerList.length) {
-                                    int diff =
-                                        int.parse(_testCountController.text) -
-                                            _answerList.length;
-                                    for (int i = 0; i < diff; i++) {
-                                      _answerList.add('1');
-                                      as.essayList.value.add('');
-                                      as.individualTitle.value.add('');
-                                      as.individualBody.value.add('');
-                                      as.individualFile.value.add('');
-                                      as.individualFilePath.value.add('');
-                                      as.choiceList.value.add('');
+                            width: Get.width * 0.6,
+                            child: TextFormField(
+                              controller: _testCountController,
+                              style: f16w400,
+                              textAlign: TextAlign.center,
+                              textAlignVertical: TextAlignVertical.center,
+                              decoration: InputDecoration(
+                                border: InputBorder.none,
+                                prefixIcon: InkWell(
+                                  onTap: () {
+                                    _answerList.removeLast();
+                                    as.essayList.value.removeLast();
+                                    as.individualTitle.value.removeLast();
+                                    as.individualBody.value.removeLast();
+                                    as.individualFile.value.removeLast();
+                                    as.individualFilePath.value.removeLast();
+                                    as.choiceList.value.removeLast();
+                                    if(widget.edit == 'true'){
+                                      as.indEditList.value.removeLast();
                                     }
+                                    setState(() {
+                                      // final x = _testCountController.text.obs;
+
+                                      ///_testCountController -
+                                      _testCountController.text =
+                                          (_testCountController.text != '0'
+                                                  ? int.parse(
+                                                          _testCountController
+                                                              .text) -
+                                                      1
+                                                  : 0)
+                                              .toString();
+                                    });
+                                  },
+                                  child: Material(
+                                    elevation: 0.0,
+                                    color: textFormColor,
+                                    shadowColor: textFormColor,
+                                    borderRadius: BorderRadius.only(
+                                      topLeft: Radius.circular(8.0),
+                                      bottomLeft: Radius.circular(8.0),
+                                    ),
+                                    child: Container(
+                                      width: 40,
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 18, vertical: 14),
+                                      child: SvgPicture.asset(
+                                        'assets/icon/minus.svg',
+                                        height: 20,
+                                        width: 20,
+                                        color: teacherColor,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                suffixIcon: InkWell(
+                                  onTap: () {
+                                    _answerList.add('1');
+                                    as.essayList.value.add('');
+                                    as.individualTitle.value.add('');
+                                    as.individualBody.value.add('');
+                                    as.individualFile.value.add('');
+                                    as.individualFilePath.value.add('');
+                                    as.choiceList.value.add('');
+                                    if(widget.edit == 'true'){
+                                      as.indEditList.value.add('');
+                                    }
+                                    setState(() {
+                                      ///_testCountController +
+                                      _testCountController.text = (int.parse(
+                                                  _testCountController.text) +
+                                              1)
+                                          .toString();
+                                    });
+                                  },
+                                  child: Material(
+                                    elevation: 0.0,
+                                    color: textFormColor,
+                                    shadowColor: textFormColor,
+                                    borderRadius: BorderRadius.only(
+                                      topRight: Radius.circular(8.0),
+                                      bottomRight: Radius.circular(8.0),
+                                    ),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 18, vertical: 14),
+                                      child: SvgPicture.asset(
+                                        'assets/icon/plus.svg',
+                                        height: 20,
+                                        width: 20,
+                                        color: teacherColor,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                hintText: '20',
+                                hintStyle: f16w400grey8,
+                              ),
+                            )),
+                        SizedBox(
+                          width: 4,
+                        ),
+                        Container(
+                          width: Get.width * 0.25,
+                          child: ElevatedButton(
+                              onPressed: () async {
+                                try {
+                                  if (int.tryParse(_testCountController.text) !=
+                                      null) {
+                                    if (int.parse(_testCountController.text) <
+                                        _answerList.length) {
+                                      _answerList.removeRange(
+                                          int.parse(_testCountController.text),
+                                          _answerList.length);
+                                      as.essayList.value.removeRange(
+                                          int.parse(_testCountController.text),
+                                          _answerList.length);
+                                      as.individualTitle.value.removeRange(
+                                          int.parse(_testCountController.text),
+                                          _answerList.length);
+                                      as.individualBody.value.removeRange(
+                                          int.parse(_testCountController.text),
+                                          _answerList.length);
+                                      as.individualFile.value.removeRange(
+                                          int.parse(_testCountController.text),
+                                          _answerList.length);
+                                      as.individualFilePath.value.removeRange(
+                                          int.parse(_testCountController.text),
+                                          _answerList.length);
+                                      as.choiceList.value.removeRange(
+                                          int.parse(_testCountController.text),
+                                          _answerList.length);
+                                    }
+                                    if (int.parse(_testCountController.text) >
+                                        _answerList.length) {
+                                      int diff =
+                                          int.parse(_testCountController.text) -
+                                              _answerList.length;
+                                      for (int i = 0; i < diff; i++) {
+                                        _answerList.add('1');
+                                        as.essayList.value.add('');
+                                        as.individualTitle.value.add('');
+                                        as.individualBody.value.add('');
+                                        as.individualFile.value.add('');
+                                        as.individualFilePath.value.add('');
+                                        as.choiceList.value.add('');
+                                        if(widget.edit == 'true'){
+                                          as.indEditList.value.add('');
+                                        }
+                                      }
+                                    }
+                                    setState(() {});
                                   }
-                                  setState(() {});
+                                } catch (e) {
+                                  print(e);
                                 }
-                              } catch (e) {
-                                print(e);
-                              }
-                            },
-                            style: ButtonStyle(
-                              shape: MaterialStateProperty.all<
-                                      RoundedRectangleBorder>(
-                                  RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8.0),
-                              )),
-                              padding: MaterialStateProperty.all<EdgeInsets>(
-                                  EdgeInsets.symmetric(
-                                      vertical: 14, horizontal: 20)),
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                  textFormColor),
-                              splashFactory: NoSplash.splashFactory,
-                              elevation: MaterialStateProperty.all<double>(0.0),
-                            ),
-                            child: Text('확인', style: f16w700primary)),
-                      )
-                    ],
+                              },
+                              style: ButtonStyle(
+                                shape: MaterialStateProperty.all<
+                                        RoundedRectangleBorder>(
+                                    RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8.0),
+                                )),
+                                padding: MaterialStateProperty.all<EdgeInsets>(
+                                    EdgeInsets.symmetric(
+                                        vertical: 14, horizontal: 20)),
+                                backgroundColor:
+                                    MaterialStateProperty.all<Color>(
+                                        textFormColor),
+                                splashFactory: NoSplash.splashFactory,
+                                elevation:
+                                    MaterialStateProperty.all<double>(0.0),
+                              ),
+                              child: Text('확인', style: f16w700primary)),
+                        )
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(
-                  height: 16,
-                ),
-                Container(
+                  const SizedBox(
+                    height: 16,
+                  ),
+                  Container(
+                      padding: EdgeInsets.symmetric(horizontal: 24),
+                      child: Text(
+                        '비밀번호',
+                        style: f18w400,
+                      )),
+                  const SizedBox(
+                    height: 10,
+                  ),
+                  Container(
                     padding: EdgeInsets.symmetric(horizontal: 24),
-                    child: Text(
-                      '비밀번호',
-                      style: f18w400,
-                    )),
-                const SizedBox(
-                  height: 10,
-                ),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 24),
-                  child: TextFormFields(
-                    controller: _testPwController,
-                    hintText: '비밀번호를 입력해 주세요',
-                    surffixIcon: '1',
-                    obscureText: _obscureText.isTrue,
-                    onTap: () {
-                      setState(() {
-                        _obscureText.value = !_obscureText.value;
-                      });
-                    },
+                    child: TextFormFields(
+                      controller: _testPwController,
+                      hintText: '비밀번호를 입력해 주세요',
+                      surffixIcon: '1',
+                      obscureText: _obscureText,
+                      onTap: () {
+                        setState(() {
+                          _obscureText = !_obscureText;
+                        });
+                      },
+                    ),
                   ),
-                ),
-                const SizedBox(
-                  height: 30,
-                ),
-                Padding(
-                  padding: ph24,
-                  child: ListView.builder(
-                      itemCount: _answerList.length,
-                      shrinkWrap: true,
-                      physics: const ClampingScrollPhysics(),
-                      itemBuilder: (c, idx) {
-                        return GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () {
-                            print('as list : ${as.essayList}');
-                            Get.to(() => PdfUploadIndividualScreen(
-                                      idx: idx,
-                                    ))!
-                                .then((value) {
-                              setState(() {});
-                            });
-                          },
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '문항 ${idx + 1}.',
-                                style: f18w700,
-                              ),
-                              const SizedBox(
-                                height: 20,
-                              ),
-                              Text(
-                                as.individualFile[idx] != ''
-                                    ? '제목(파일첨부)'
-                                    : '제목',
-                                style: f18w400,
-                              ),
-                              const SizedBox(
-                                height: 10,
-                              ),
-                              Container(
-                                width: Get.width,
-                                padding: ph24v12,
-                                decoration: BoxDecoration(
-                                  color: Color(0xffEBEBEB),
-                                  borderRadius: BorderRadius.circular(7),
+                  const SizedBox(
+                    height: 30,
+                  ),
+                  Padding(
+                    padding: ph24,
+                    child: ListView.builder(
+                        itemCount: _answerList.length,
+                        shrinkWrap: true,
+                        physics: const ClampingScrollPhysics(),
+                        itemBuilder: (c, idx) {
+                          return GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () {
+                              print('as list : ${as.essayList}');
+                              Get.to(() => PdfUploadIndividualScreen(
+                                        idx: idx,
+                                        edit: widget.edit,
+                                      ))!
+                                  .then((value) {
+                                setState(() {});
+                              });
+                            },
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '문항 ${idx + 1}.',
+                                  style: f18w700,
                                 ),
-                                child: Text(
-                                  as.individualTitle[idx] == ''
-                                      ? '문제를 입력해주세요'
-                                          ''
-                                      : '${as.individualTitle[idx]}',
-                                  style: f16w400,
+                                const SizedBox(
+                                  height: 20,
                                 ),
-                              ),
-                              const SizedBox(
-                                height: 16,
-                              ),
-                              Row(
-                                children: [
-                                  Text(
-                                    '답안 :',
-                                    style: f18w400,
+                                Text(
+                                  as.individualFile[idx] != ''
+                                      ? '제목(파일첨부)'
+                                      : '제목',
+                                  style: f18w400,
+                                ),
+                                const SizedBox(
+                                  height: 10,
+                                ),
+                                Container(
+                                  width: Get.width,
+                                  padding: ph24v12,
+                                  decoration: BoxDecoration(
+                                    color: Color(0xffEBEBEB),
+                                    borderRadius: BorderRadius.circular(7),
                                   ),
-                                  const SizedBox(
-                                    width: 10,
+                                  child: Text(
+                                    as.individualTitle[idx] == ''
+                                        ? '문제를 입력해주세요'
+                                            ''
+                                        : '${as.individualTitle[idx]}',
+                                    style: f16w400,
                                   ),
-                                  Text(
-                                    as.essayList[idx] != ''
-                                        ? '${as.essayList[idx]}'
-                                        : as.choiceList[idx] == ''
-                                            ? '답을 입력해주세요'
-                                            : '${as.choiceList[idx]}',
-                                    style: f18w700,
-                                  ),
-                                  // Obx(() =>Text('${as.essayList[idx]}',style: f18w700,)),
-                                  // as.essayList[idx] == 'true' ? Text('주관식',style: f18w700,):  Text(
-                                  //   '1',
-                                  //   style: f18w700,
-                                  // ),
-                                ],
-                              ),
-                              const SizedBox(
-                                height: 10,
-                              ),
-                              Divider(),
-                              const SizedBox(
-                                height: 10,
-                              ),
-                            ],
-                          ),
-                        );
-                      }),
-                )
-              ],
+                                ),
+                                const SizedBox(
+                                  height: 16,
+                                ),
+                                Row(
+                                  children: [
+                                    Text(
+                                      '답안 :',
+                                      style: f18w400,
+                                    ),
+                                    const SizedBox(
+                                      width: 10,
+                                    ),
+                                    Text(
+                                      as.essayList[idx] != ''
+                                          ? '${as.essayList[idx]}'
+                                          : as.choiceList[idx] == ''
+                                              ? '답을 입력해주세요'
+                                              : '${as.choiceList[idx]}',
+                                      style: f18w700,
+                                    ),
+                                    // Obx(() =>Text('${as.essayList[idx]}',style: f18w700,)),
+                                    // as.essayList[idx] == 'true' ? Text('주관식',style: f18w700,):  Text(
+                                    //   '1',
+                                    //   style: f18w700,
+                                    // ),
+                                  ],
+                                ),
+                                const SizedBox(
+                                  height: 10,
+                                ),
+                                Divider(),
+                                const SizedBox(
+                                  height: 10,
+                                ),
+                              ],
+                            ),
+                          );
+                        }),
+                  )
+                ],
+              ),
             ),
           ),
         ),
@@ -542,20 +578,71 @@ class _PdfIndMainScreenState extends State<PdfIndMainScreen> {
   //   final snapshot = await uploadTask!.whenComplete(() => null);
   // }
 
-  Future<void> _update(String docId)async{
+  Future<void> _update(String docId) async {
     final as = Get.put(AnswerState());
-    DocumentReference ref = FirebaseFirestore.instance.collection('answer').doc(docId);
+    final us = Get.put(UserState());
+
+    DocumentReference ref =
+        FirebaseFirestore.instance.collection('answer').doc(docId);
     ref.update({
-      'password' : _testPwController.text,
-      'pdfCategory' : _testNameController.text,
-      'answer' : as.answer.toList(),
+      'password': _testPwController.text,
+      'pdfCategory': _testNameController.text,
+      'answer': as.answer.toList(),
       'individualBody': as.individualBody,
       'individualTitle': as.individualTitle,
     });
-
+    var contain =  as.indEditList.where((element) => element == "edit");
+    if(!contain.isEmpty){
+      print('what1111 : ${as.individualFile}');
+      await ref.update({
+        "images": [],
+        'individualFile' : as.individualFile,
+      });
+      setState(() {
+        _imageLoading = true;
+      });
+      _imageLoading == true
+          ? showDialog(
+        barrierDismissible: false,
+        builder: (ctx) {
+          return Center(child: LoadingBodyScreen());
+        },
+        context: context,
+      )
+          : Container();
+      for(int i = 0; i < as.individualFile.length; i++){
+        print('$i번함---------');
+        if(as.indEditList[i] == 'edit'){
+          var time = DateTime.now();
+          final firebaseStorageRef = FirebaseStorage.instance
+              .ref()
+              .child('teacher')
+              .child('${us.userList[0].id}')
+              .child('$docId')
+              .child('${time}');
+          final uploadTask = firebaseStorageRef.putFile(
+              File(as.editIndividualImage[i]),
+              SettableMetadata(contentType: 'image/png'));
+          await uploadTask.then((p0) => null);
+          await ref.update({
+            "images": FieldValue.arrayUnion(['${time}']),
+          });
+        }else{
+          await ref.update({
+            "images": FieldValue.arrayUnion(['no$i']),
+          });
+        }
+      }
+    }else{
+      await ref.update({
+        "images": as.editIndividualImage,
+        'individualFile' :  as.individualFile,
+      });
+    }
   }
 
-  Future<void> firebaseAnswerUploadIndividual(UploadTask? uploadTask) async {
+  Future<void> firebaseAnswerUploadIndividual(
+      UploadTask? uploadTask, bool image) async {
     final as = Get.put(AnswerState());
     final us = Get.put(UserState());
 
@@ -564,7 +651,8 @@ class _PdfIndMainScreenState extends State<PdfIndMainScreen> {
         isIndividual: 'true',
         individualBody: as.individualBody,
         individualTitle: as.individualTitle,
-        individualFile: [],
+        individualFile: as.individualFile,
+        images: [],
         createDate: '${DateTime.now()}',
         answer: as.answer.toList(),
         answerCount: '',
@@ -574,7 +662,7 @@ class _PdfIndMainScreenState extends State<PdfIndMainScreen> {
         pdfCategory: '${as.pdfCategory}',
         pdfName: '${as.pdfName}',
         pdfUploadName: '${as.pdfUploadName}',
-        state: '대기',
+        state: '완료',
         teacher: '${as.teacher}',
         temp1: '',
         temp2: '');
@@ -582,10 +670,10 @@ class _PdfIndMainScreenState extends State<PdfIndMainScreen> {
       DocumentReference userDocRef =
           FirebaseFirestore.instance.collection('answer').doc(doc.id);
       as.docId.value = doc.id;
-      as.individualFile.removeWhere((item) => item == '');
-      as.individualFilePath.removeWhere((item) => item == '');
+      // as.individualFile.removeWhere((item) => item == '');
+      // as.individualFilePath.removeWhere((item) => item == '');
       await userDocRef.update({'docId': '${doc.id}'});
-      if (as.individualFile.length != 0) {
+      if (image == false) {
         await _uploadFile(doc.id, '${us.userList[0].id}');
         showConfirmTapDialog(context, '업로드를 완료했습니다', () {
           Get.offAll(() => BottomNavigator());
@@ -615,33 +703,44 @@ class _PdfIndMainScreenState extends State<PdfIndMainScreen> {
 
     DocumentReference userDocRef =
         FirebaseFirestore.instance.collection('answer').doc(docId);
+
     for (int i = 0; i < as.individualFile.length; i++) {
-      final firebaseStorageRef = FirebaseStorage.instance
-          .ref()
-          .child('teacher')
-          .child('$phoneNumber')
-          .child('$docId')
-          .child('${DateTime.now()}');
-      final uploadTask = firebaseStorageRef.putFile(
-          File(as.individualFilePath[i]),
-          SettableMetadata(contentType: 'image/png'));
-      await uploadTask;
+      if (as.individualFile[i] != '') {
+        print('-------exist');
+        var time = DateTime.now();
+        final firebaseStorageRef = FirebaseStorage.instance
+            .ref()
+            .child('teacher')
+            .child('$phoneNumber')
+            .child('$docId')
+            .child('${time}');
+        final uploadTask = firebaseStorageRef.putFile(
+            File(as.individualFilePath[i]),
+            SettableMetadata(contentType: 'image/png'));
+        await uploadTask.then((p0) => null);
+
+        await userDocRef.update({
+          "images": FieldValue.arrayUnion(['${time}'])
+        });
+        print('-------exist22');
+      } else {
+        print('-------nothing : $i');
+        await userDocRef.update({
+          "images": FieldValue.arrayUnion(['no$i'])
+        });
+      }
     }
-    final pathReference = FirebaseStorage.instance
-        .ref()
-        .child('teacher')
-        .child('$phoneNumber')
-        .child(docId);
-    ListResult nestedResult = await pathReference.listAll();
-    nestedResult.items.forEach((element) async {
-      await userDocRef.update({
-        "images": FieldValue.arrayUnion(['${element.name}'])
-      });
-    });
 
     setState(() {
       _imageLoading = false;
       Navigator.pop(context);
+    });
+  }
+
+  Future<bool> _useBackKey(BuildContext context) async {
+    return await showComponentDialog(context, '작성을 취소하시겠습니까?', () {
+      Get.back();
+      Get.back();
     });
   }
 }
