@@ -1,6 +1,7 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class ClickFullImage extends StatefulWidget {
   final List listImagesModel;
@@ -37,7 +38,13 @@ class _ClickFullImageState extends State<ClickFullImage> {
         child: new Scaffold(
             backgroundColor: Colors.transparent,
             appBar: AppBar(
-              backgroundColor: Colors.transparent,
+              backgroundColor: Colors.white,
+              elevation: 0,
+              leading: GestureDetector(
+                onTap: (){
+                  Get.back();
+                },
+                  child: Icon(Icons.arrow_back_ios,color: Colors.black,)),
             ),
             body: Container(
               child: Column(

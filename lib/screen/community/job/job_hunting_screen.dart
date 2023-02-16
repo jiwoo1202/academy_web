@@ -70,6 +70,7 @@ class _JobHuntingScreenState extends State<JobHuntingScreen> {
                           js.jobTitle.value = js.userL[index]['title'];
                           js.jobList.value = js.userL[index]['images'];
                           js.jobTeacher.value = js.userL[index]['teacher'];
+                          js.jobCreateDate.value = js.userL[index]['createDate'];
                           js.selectJobTile.clear();
                           js.selectJobTile.add(js.userL[index]);
                           Get.to(() => JobHuntingDetailScreen(docId: '${js.jobDocId}'))!.then((value) => {

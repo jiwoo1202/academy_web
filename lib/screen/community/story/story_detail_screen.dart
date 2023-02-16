@@ -15,6 +15,7 @@ import '../../../provider/user_state.dart';
 import '../../../util/font.dart';
 import '../../login/login_main_screen.dart';
 import 'story_write_screen.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class StoryDetailScreen extends StatefulWidget {
   final String docId;
@@ -41,6 +42,7 @@ class _StoryDetailScreenState extends State<StoryDetailScreen> {
   TextEditingController reportController = TextEditingController();
   List<bool> _isAnn = [];
   int _numLines = 0;
+  int _count = 0;
   List _communityList = [];
 
   // List _commentsList = [];
@@ -156,6 +158,8 @@ class _StoryDetailScreenState extends State<StoryDetailScreen> {
                                     'false',
                                     cs.communDocId.value,
                                   );
+                                  await _blockUpdate('${us.userList[0].id}',widget.id1);
+
                                   // Get.back();
                                 }, reportController);
                                 widget.refreshIndicatorKey?.currentState?.show();
@@ -208,206 +212,212 @@ class _StoryDetailScreenState extends State<StoryDetailScreen> {
           },
           child: _isLoading
               ? LoadingBodyScreen()
-              : SingleChildScrollView(
-                  physics: const ClampingScrollPhysics(),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CommunityDetail(
-                        who: _communityList[0]['name'],
-                        dateTime: DateTime.now(),
-                        docId: _communityList[0]['docId'],
-                        hasImage: _communityList[0]['hasImage'],
-                        createDate: _communityList[0]['createDate'],
-                        image: _communityList[0]['images'],
-                        id: _communityList[0]['id'],
-                        carouselCon: carouselController,
-                        title: _communityList[0]['title'],
-                        body: _communityList[0]['body'],
-                        commentCount: _commentsBlockList.length,
-                        anonymous: false,
-                        isMine: _communityList[0]['id'] ==
-                            us.userList[0].phoneNumber,
-                        //수정
-                        anonymousCount: 0,
-                        refreshIndicatorKey: widget.refreshIndicatorKey,
-                        onTap4: () { //안씀
-                          // Future.delayed(Duration.zero, () async {
-                          //   showOnlyConfirmDialog(context, '차단했습니다');
-                          //   await firebaseBlockCreate(
-                          //     '${us.userList[0].phoneNumber}',
-                          //     // '$차단한 유저의 핸드폰 번호',
-                          //     // '${cs.storyId.value}',
-                          //     '',
-                          //     'story',
-                          //     'true',
-                          //     cs.communDocId.value,
-                          //   );
-                          //   widget.refreshIndicatorKey?.currentState?.show();
-                          // });
-                          // Get.back();
-                        },
-                      ),
-                      ListView.builder(
-                          physics: const ClampingScrollPhysics(),
-                          itemCount: _commentsBlockList.length,
-                          shrinkWrap: true,
-                          itemBuilder: (_, idx) {
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Padding(
-                                      padding: ph24,
-                                      child: Text(
-                                        '${_commentsBlockList[idx]['name']}',
-                                        style: f14w400grey5,
+              : Padding(
+                padding: EdgeInsets.symmetric(horizontal: kIsWeb ? Get.width*0.24 : 0,),
+                child: SingleChildScrollView(
+                    physics: const ClampingScrollPhysics(),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CommunityDetail(
+                          who: _communityList[0]['name'],
+                          dateTime: DateTime.now(),
+                          docId: _communityList[0]['docId'],
+                          hasImage: _communityList[0]['hasImage'],
+                          createDate: _communityList[0]['createDate'],
+                          image: _communityList[0]['images'],
+                          id: _communityList[0]['id'],
+                          carouselCon: carouselController,
+                          title: _communityList[0]['title'],
+                          body: _communityList[0]['body'],
+                          commentCount: _count,
+                          anonymous: false,
+                          isMine: _communityList[0]['id'] ==
+                              us.userList[0].phoneNumber,
+                          //수정
+                          anonymousCount: 0,
+                          refreshIndicatorKey: widget.refreshIndicatorKey,
+                          onTap4: () { //안씀
+                            // Future.delayed(Duration.zero, () async {
+                            //   showOnlyConfirmDialog(context, '차단했습니다');
+                            //   await firebaseBlockCreate(
+                            //     '${us.userList[0].phoneNumber}',
+                            //     // '$차단한 유저의 핸드폰 번호',
+                            //     // '${cs.storyId.value}',
+                            //     '',
+                            //     'story',
+                            //     'true',
+                            //     cs.communDocId.value,
+                            //   );
+                            //   widget.refreshIndicatorKey?.currentState?.show();
+                            // });
+                            // Get.back();
+                          },
+                        ),
+                        ListView.builder(
+                            physics: const ClampingScrollPhysics(),
+                            itemCount: _commentsBlockList.length,
+                            shrinkWrap: true,
+                            itemBuilder: (_, idx) {
+                              return us.userList[0].isBanned!.contains(_commentsBlockList[idx]['id']) ? Container() :
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Padding(
+                                        padding: ph24,
+                                        child: Text(
+                                          '${_commentsBlockList[idx]['name']}',
+                                          style: f14w400grey5,
+                                        ),
                                       ),
-                                    ),
-                                    Spacer(),
-                                    Theme(
-                                      data: Theme.of(context).copyWith(
-                                        highlightColor: Colors.transparent,
-                                        splashColor: Colors.transparent,
-                                      ),
-                                      child: PopupMenuButton(
-                                          shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(8)),
-                                          offset: const Offset(-20, 40),
-                                          icon: Container(
-                                            height: 15,
-                                            width: 20,
-                                            alignment: Alignment.centerRight,
-                                            child: SvgPicture.asset(
-                                              'assets/icon/more_button.svg',
+                                      Spacer(),
+                                      Theme(
+                                        data: Theme.of(context).copyWith(
+                                          highlightColor: Colors.transparent,
+                                          splashColor: Colors.transparent,
+                                        ),
+                                        child: PopupMenuButton(
+                                            shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(8)),
+                                            offset: const Offset(-20, 40),
+                                            icon: Container(
+                                              height: 15,
                                               width: 20,
-                                              height: 20,
+                                              alignment: Alignment.centerRight,
+                                              child: SvgPicture.asset(
+                                                'assets/icon/more_button.svg',
+                                                width: 20,
+                                                height: 20,
+                                              ),
                                             ),
-                                          ),
-                                          itemBuilder: (context) => [
-                                                PopupMenuItem(
-                                                    padding: EdgeInsets.zero,
-                                                    child: Column(
-                                                      children: [
-                                                        Center(
-                                                          child: _isAnn[idx] ==
-                                                                  true
-                                                              ? const Text(
-                                                                  '수정하기',
-                                                                  style:
-                                                                      f14w500,
-                                                                )
-                                                              : const Text(
-                                                                  '신고하기',
-                                                                  style:
-                                                                      f14w500,
-                                                                ),
-                                                        ),
-                                                        _isAnn[idx] == true
-                                                            ? const Divider()
-                                                            : Container(),
-                                                      ],
-                                                    ),
-                                                    value: 1,
-                                                    onTap: () {
-                                                      if (_isAnn[idx] == false) {
-                                                        ///comment 차단
-                                                        Future.delayed(Duration.zero, () async {
-                                                          showEditDialog(context, '신고 사유를 입력해주세요' ,() async {
-                                                            showOnlyConfirmDialog(context, '신고했습니다');
-                                                            await firebaseBlockCreate(
-                                                              '${us.userList[0].phoneNumber}',
-                                                              _commentsBlockList[idx]['id'], 'story', 'true',
-                                                              _commentsBlockList[idx]['docId'],
-                                                            );
+                                            itemBuilder: (context) => [
+                                                  PopupMenuItem(
+                                                      padding: EdgeInsets.zero,
+                                                      child: Column(
+                                                        children: [
+                                                          Center(
+                                                            child: _isAnn[idx] ==
+                                                                    true
+                                                                ? const Text(
+                                                                    '수정하기',
+                                                                    style:
+                                                                        f14w500,
+                                                                  )
+                                                                : const Text(
+                                                                    '신고하기',
+                                                                    style:
+                                                                        f14w500,
+                                                                  ),
+                                                          ),
+                                                          _isAnn[idx] == true
+                                                              ? const Divider()
+                                                              : Container(),
+                                                        ],
+                                                      ),
+                                                      value: 1,
+                                                      onTap: () {
+                                                        if (_isAnn[idx] == false) {
+                                                          ///comment 차단
+                                                          Future.delayed(Duration.zero, () async {
+                                                            showEditDialog(context, '신고 사유를 입력해주세요' ,() async {
+                                                              showOnlyConfirmDialog(context, '신고했습니다');
+                                                              await firebaseBlockCreate(
+                                                                '${us.userList[0].phoneNumber}',
+                                                                _commentsBlockList[idx]['id'], 'story', 'true',
+                                                                _commentsBlockList[idx]['docId'],
+                                                              );
 
-                                                            await commentsBlockExceptGet();
-                                                          }, reportController);
-                                                          _refreshIndicatorKey.currentState?.show();
-                                                          commentController.text = '';
-                                                        });
-                                                      } else {
-                                                        ///comment 수정
-                                                        Future.delayed(Duration.zero, () async{
-                                                          setState(() {
-                                                            editController.text = _commentsBlockList[idx]['body'];
+                                                              await _blockUpdate('${us.userList[0].id}', _commentsBlockList[idx]['id']);
+
+                                                              await commentsBlockExceptGet();
+                                                            }, reportController);
+                                                            _refreshIndicatorKey.currentState?.show();
+                                                            commentController.text = '';
                                                           });
-                                                          showEditDialog(context, '댓글 수정하기', () async {
-                                                            if (editController.text.trim().isEmpty == true) {
-                                                              showOnlyConfirmDialog(context, '수정할 댓글을 입력해 주세요');
-                                                            } else {
-                                                              await _communityCommentUpdate(_commentsBlockList[idx]['docId'],
-                                                                  editController.text);
-                                                              Get.back();
-                                                              await showOnlyConfirmDialog(context, '댓글이 입력되었습니다');
-                                                              _refreshIndicatorKey.currentState?.show();
-                                                              commentController.text = '';
-                                                              editController.text = '';
-                                                            }
-                                                          }, editController);
+                                                        } else {
+                                                          ///comment 수정
+                                                          Future.delayed(Duration.zero, () async{
+                                                            setState(() {
+                                                              editController.text = _commentsBlockList[idx]['body'];
+                                                            });
+                                                            showEditDialog(context, '댓글 수정하기', () async {
+                                                              if (editController.text.trim().isEmpty == true) {
+                                                                showOnlyConfirmDialog(context, '수정할 댓글을 입력해 주세요');
+                                                              } else {
+                                                                await _communityCommentUpdate(_commentsBlockList[idx]['docId'],
+                                                                    editController.text);
+                                                                Get.back();
+                                                                await showOnlyConfirmDialog(context, '댓글이 입력되었습니다');
+                                                                _refreshIndicatorKey.currentState?.show();
+                                                                commentController.text = '';
+                                                                editController.text = '';
+                                                              }
+                                                            }, editController);
+                                                          });
+                                                        }
+                                                      }),
+                                                  PopupMenuItem(
+                                                      height: 0,
+                                                      padding: EdgeInsets.zero,
+                                                      child: _isAnn[idx] == true
+                                                          ? Column(
+                                                              children: [
+                                                                Center(
+                                                                    child:
+                                                                        const Text(
+                                                                  '삭제하기',
+                                                                  style: f14w500,
+                                                                )),
+                                                                SizedBox(
+                                                                  height: 8,
+                                                                ),
+                                                              ],
+                                                            )
+                                                          : Container(),
+                                                      value: 2,
+                                                      onTap: () {
+                                                        ///comment delete
+                                                        print('1');
+                                                        Future.delayed(Duration.zero, () async{
+                                                          showComponentDialog(context, '삭제 하시겠습니까?', () async {
+                                                            _communityCommentDelete(_commentsBlockList[idx]['docId']);
+                                                            Get.back();
+                                                            await showOnlyConfirmDialog(context, '댓글이 삭제 되었습니다');
+                                                            _refreshIndicatorKey.currentState?.show();
+                                                          });
                                                         });
-                                                      }
-                                                    }),
-                                                PopupMenuItem(
-                                                    height: 0,
-                                                    padding: EdgeInsets.zero,
-                                                    child: _isAnn[idx] == true
-                                                        ? Column(
-                                                            children: [
-                                                              Center(
-                                                                  child:
-                                                                      const Text(
-                                                                '삭제하기',
-                                                                style: f14w500,
-                                                              )),
-                                                              SizedBox(
-                                                                height: 8,
-                                                              ),
-                                                            ],
-                                                          )
-                                                        : Container(),
-                                                    value: 2,
-                                                    onTap: () {
-                                                      ///comment delete
-                                                      print('1');
-                                                      Future.delayed(Duration.zero, () async{
-                                                        showComponentDialog(context, '삭제 하시겠습니까?', () async {
-                                                          _communityCommentDelete(_commentsBlockList[idx]['docId']);
-                                                          Get.back();
-                                                          await showOnlyConfirmDialog(context, '댓글이 삭제 되었습니다');
-                                                          _refreshIndicatorKey.currentState?.show();
-                                                        });
-                                                      });
-                                                    }),
-                                              ]),
-                                    ),
-                                  ],
-                                ),
-                                Padding(
-                                  padding: ph24,
-                                  child: Text(
-                                    '${_commentsBlockList[idx]['body']}',
-                                    style: f16w400,
+                                                      }),
+                                                ]),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                                const SizedBox(
-                                  height: 16,
-                                ),
-                                Divider(
-                                  height: 1,
-                                ),
-                              ],
-                            );
-                          })
-                    ],
+                                  Padding(
+                                    padding: ph24,
+                                    child: Text(
+                                      '${_commentsBlockList[idx]['body']}',
+                                      style: f16w400,
+                                    ),
+                                  ),
+                                  const SizedBox(
+                                    height: 16,
+                                  ),
+                                  Divider(
+                                    height: 1,
+                                  ),
+                                ],
+                              );
+                            })
+                      ],
+                    ),
                   ),
-                ),
+              ),
         ),
         bottomNavigationBar: Padding(
           padding:
-              EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+              EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom, left: kIsWeb ? Get.width*0.24 : 0, right: kIsWeb ? Get.width*0.24 : 0),
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 24),
             child: TextFormFields(
@@ -471,18 +481,24 @@ class _StoryDetailScreenState extends State<StoryDetailScreen> {
   //   _commentsList = allData;
   // }
 
+  Future<void> _blockUpdate(String id,String bannedId) async {
+    CollectionReference ref = FirebaseFirestore.instance.collection('user');
+    QuerySnapshot snapshot = await ref.where('id', isEqualTo: id).get();
+    snapshot.docs[0].reference.update({'isBanned': FieldValue.arrayUnion([bannedId])});
+  }
+
   Future<void> commentsBlockExceptGet() async {
     final us = Get.put(UserState());
     final cs = Get.put(CommunityState());
-    CollectionReference ref2 = FirebaseFirestore.instance.collection('block');
-    QuerySnapshot snapshot2 = await ref2
-        .where('blockId', isEqualTo: us.userList[0].phoneNumber)
-        .where('collectionName', isEqualTo: 'story')
-        .where('commentField', isEqualTo: 'true')
-        .get();
-    final allData = snapshot2.docs.map((doc) => doc.data()).toList();
-    print('55555 : ${allData.length}');
-    List ls = allData;
+    // CollectionReference ref2 = FirebaseFirestore.instance.collection('block');
+    // QuerySnapshot snapshot2 = await ref2
+    //     .where('blockId', isEqualTo: us.userList[0].phoneNumber)
+    //     .where('collectionName', isEqualTo: 'story')
+    //     .where('commentField', isEqualTo: 'true')
+    //     .get();
+    // final allData = snapshot2.docs.map((doc) => doc.data()).toList();
+    // print('55555 : ${allData.length}');
+    // List ls = allData;
 
     CollectionReference ref = FirebaseFirestore.instance
         .collection('story')
@@ -494,19 +510,22 @@ class _StoryDetailScreenState extends State<StoryDetailScreen> {
     // _commentsList = allData2;
     List ls2 = allData2;
     List ls3 = [];
-    int count = 0;
+    _count = allData2.length;
     for (int i = 0; i < ls2.length; i++) {
-      count = 0;
-      for (int j = 0; j < ls.length; j++) {
-        if (ls2[i]['docId'] == ls[j]['blockDocId']) {
-          count++;
-        }
+      if(us.userList[0].isBanned!.contains(ls2[i]['id'])){
+        _count--;
       }
-      if (count == 0) {
-        ls3.add(ls2[i]);
-      }
+      // count = 0;
+      // for (int j = 0; j < ls.length; j++) {
+      //   if (ls2[i]['docId'] == ls[j]['blockDocId']) {
+      //     count++;
+      //   }
+      // }
+      // if (count == 0) {
+      //   ls3.add(ls2[i]);
+      // }
     }
-    _commentsBlockList = ls3;
+    _commentsBlockList = ls2;
     print('_commentsBlockList: ${_commentsBlockList} ');
   }
 

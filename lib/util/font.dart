@@ -43,6 +43,8 @@ const TextStyle f16w400 = TextStyle(
     fontSize: 16,  color: blackTextColor, fontWeight: FontWeight.w400, fontFamily: 'Pretendard');
 const TextStyle f14w400 = TextStyle(
     fontSize: 14, color: blackTextColor, fontWeight: FontWeight.w400, fontFamily: 'Pretendard');
+const TextStyle f12w400 = TextStyle(
+    fontSize: 12, color: blackTextColor, fontWeight: FontWeight.w400, fontFamily: 'Pretendard');
 
 
 //blue
@@ -87,6 +89,8 @@ const TextStyle f16Whitew700 = TextStyle(
     fontSize: 16, color: Colors.white, fontWeight: FontWeight.w700, fontFamily: 'Pretendard');
 const TextStyle f16Whitew500 = TextStyle(
     fontSize: 16, color: Colors.white, fontWeight: FontWeight.w500, fontFamily: 'Pretendard');
+const TextStyle f12Whitew400 = TextStyle(
+    fontSize: 12, color: Colors.white, fontWeight: FontWeight.w400, fontFamily: 'Pretendard');
 
 // white
 
@@ -107,6 +111,8 @@ const TextStyle f14w400grey5 = TextStyle(
 ///w700
 const TextStyle f16w400grey8 = TextStyle(
     fontSize: 16, color: hintTextColor, fontWeight: FontWeight.w400, fontFamily: 'Pretendard');
+const TextStyle f12w400grey8 = TextStyle(
+    fontSize: 12, color: hintTextColor, fontWeight: FontWeight.w400, fontFamily: 'Pretendard');
 
 //
 
@@ -114,23 +120,51 @@ const TextStyle f16w400grey8 = TextStyle(
 
 ///w700
 const TextStyle f18w700greyA = TextStyle(
-    fontSize: 18, color: blurColor, fontWeight: FontWeight.w700, fontFamily: 'Pretendard');
+    fontSize: 18,  color: blurColor, fontWeight: FontWeight.w700, fontFamily: 'Pretendard');
 const TextStyle f16w700greyA = TextStyle(
-    fontSize: 16, color: blurColor, fontWeight: FontWeight.w700, fontFamily: 'Pretendard');
+    fontSize: 16,  color: blurColor, fontWeight: FontWeight.w700, fontFamily: 'Pretendard');
 const TextStyle f16w500greyA = TextStyle(
-    fontSize: 16, color: blurColor, fontWeight: FontWeight.w500, fontFamily: 'Pretendard');
+    fontSize: 16,  color: blurColor, fontWeight: FontWeight.w500, fontFamily: 'Pretendard');
 const TextStyle f16w400greyA = TextStyle(
-    fontSize: 16, color: blurColor, fontWeight: FontWeight.w400, fontFamily: 'Pretendard');
+    fontSize: 16,  color: blurColor, fontWeight: FontWeight.w400, fontFamily: 'Pretendard');
+const TextStyle f14w400greyA = TextStyle(
+    fontSize: 14,  color: blurColor, fontWeight: FontWeight.w400, fontFamily: 'Pretendard');
+const TextStyle f12w400greyA = TextStyle(
+    fontSize: 12,  color: blurColor, fontWeight: FontWeight.w400, fontFamily: 'Pretendard');
+const TextStyle f10w400greyA = TextStyle(
+    fontSize: 10,  color: blurColor, fontWeight: FontWeight.w400, fontFamily: 'Pretendard');
+const TextStyle f8w400greyA = TextStyle(
+    fontSize: 8,  color: blurColor, fontWeight: FontWeight.w400, fontFamily: 'Pretendard');
 
 //
 
 // ellipsis
 
 const TextStyle f18w400el = TextStyle(overflow: TextOverflow.ellipsis,
-    fontSize: 18, color: blackTextColor, fontWeight: FontWeight.w400, fontFamily: 'Pretendard');
+    fontSize: 18,  color: blackTextColor, fontWeight: FontWeight.w400, fontFamily: 'Pretendard');
 const TextStyle f16w400el = TextStyle(overflow: TextOverflow.ellipsis,
-    fontSize: 16, color: hintTextColor, fontWeight: FontWeight.w400, fontFamily: 'Pretendard');
-const TextStyle f16w400greyAel = TextStyle(overflow: TextOverflow.ellipsis,
-    fontSize: 16, color: blurColor, fontWeight: FontWeight.w400, fontFamily: 'Pretendard');
+    fontSize: 16,  color: blackTextColor, fontWeight: FontWeight.w400, fontFamily: 'Pretendard');
+const TextStyle f14w400el = TextStyle(overflow: TextOverflow.ellipsis,
+    fontSize: 14,  color: blackTextColor, fontWeight: FontWeight.w400, fontFamily: 'Pretendard');
+const TextStyle f12w400el = TextStyle(overflow: TextOverflow.ellipsis,
+    fontSize: 12,  color: blackTextColor, fontWeight: FontWeight.w400, fontFamily: 'Pretendard');
+const TextStyle f10w400el = TextStyle(overflow: TextOverflow.ellipsis,
+    fontSize: 10,  color: blackTextColor, fontWeight: FontWeight.w400, fontFamily: 'Pretendard');
 
 //
+
+
+// grey ael
+
+const TextStyle f16w400greyAel = TextStyle(overflow: TextOverflow.ellipsis,
+    fontSize: 16,  color: blurColor, fontWeight: FontWeight.w400, fontFamily: 'Pretendard');
+const TextStyle f14w400greyAel = TextStyle(overflow: TextOverflow.ellipsis,
+    fontSize: 14,  color: blurColor, fontWeight: FontWeight.w400, fontFamily: 'Pretendard');
+const TextStyle f12w400greyAel = TextStyle(overflow: TextOverflow.ellipsis,
+    fontSize: 12,  color: blurColor, fontWeight: FontWeight.w400, fontFamily: 'Pretendard');
+const TextStyle f10w400greyAel = TextStyle(overflow: TextOverflow.ellipsis,
+    fontSize: 10,  color: blurColor, fontWeight: FontWeight.w400, fontFamily: 'Pretendard');
+const TextStyle f8w400greyAel = TextStyle(overflow: TextOverflow.ellipsis,
+    fontSize: 8,  color: blurColor, fontWeight: FontWeight.w400, fontFamily: 'Pretendard');
+
+// grey ael

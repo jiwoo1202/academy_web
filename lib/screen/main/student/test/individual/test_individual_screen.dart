@@ -45,7 +45,14 @@ class _TestIndividualState extends State<TestIndividual> {
       _controller = List.generate(ts.individualTestGet[0]['answer'].length,
           (i) => TextEditingController());
       print('answer : ${_answer}');
-      _score();
+
+      if(widget.isChecked == 'true'){
+        _score();
+      }else{
+
+        ts.individualAnswer.value = List.generate(
+            ts.individualTestGet[0]['answer'].length, (index) => '');
+      }
       setState(() {
         _isLoading = false;
       });
@@ -70,11 +77,12 @@ class _TestIndividualState extends State<TestIndividual> {
           ? LoadingBodyScreen()
           : Scaffold(
               appBar: AppBar(
+                leading: Container(),
                 backgroundColor: Colors.white,
                 title: Column(
                   children: [
                     Text(
-                      '${ts.individualTestGet[0]['teacher']} 선생님(총점 : ${((correct/ts.individualTestGet[0]['answer'].length)* 100).ceil()}점)',
+                      widget.isChecked == 'true' ? '${ts.individualTestGet[0]['teacher']} 선생님(총점 : ${((correct/ts.individualTestGet[0]['answer'].length)* 100).ceil()}점)' : '${ts.individualTestGet[0]['teacher']} 선생님',
                       style: f16w700,
                     ),
                     Text(
@@ -150,7 +158,7 @@ class _TestIndividualState extends State<TestIndividual> {
                           SizedBox(
                             height: 20,
                           ),
-                          !ts.individualTestGet[0]['images'][index]
+                          ts.individualTestGet[0]['images'].length == 0 ? Container(): !ts.individualTestGet[0]['images'][index]
                                   .contains('no')
                               ? ExtendedImage.network(
                                   // 'https://firebasestorage.googleapis.com/v0/b/academy-957f7.appspot.com/o/teacher%2F1234%2F6EhFcIYaHuOmpsH9H87N%2F2023-02-08%2013%3A32%3A44.647799?alt=media&token=947e3a38-3426-4605-85df-ad874a4c0b9a',
@@ -161,7 +169,7 @@ class _TestIndividualState extends State<TestIndividual> {
                                   enableLoadState: false,
                                 )
                               : Container(),
-                          ts.individualTestGet[0]['images'][index] != ''
+                          ts.individualTestGet[0]['images'].length == 0 ? Container(): ts.individualTestGet[0]['images'][index] != ''
                               ? SizedBox(
                                   height: 20,
                                 )
@@ -333,8 +341,7 @@ class _TestIndividualState extends State<TestIndividual> {
                               if (_pageIndex ==
                                   ts.individualTestGet[0]['answer'].length -
                                       1) {
-                                showComponentDialog(context, '제출하시겠습니까?',
-                                    () async {
+                                showComponentDialog(context, '제출하시겠습니까?', () async {
                                   ts.answer.value = _answer;
                                   await firebaseIndividualTestUpload();
                                   Get.back();

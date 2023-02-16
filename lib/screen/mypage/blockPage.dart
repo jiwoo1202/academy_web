@@ -12,7 +12,6 @@ import '../../provider/user_state.dart';
 import '../../util/colors.dart';
 import '../../util/font.dart';
 
-
 class BlockPage extends StatefulWidget {
   static final String id = '/Block_check';
   const BlockPage({Key? key}) : super(key: key);
@@ -75,26 +74,29 @@ class _BlockPageState extends State<BlockPage> {
                   children: [
                     Row(
                      children: [
-                       Container(
-                         width: MediaQuery.of(context).size.width*0.7,
-                         height: 64,
-                         decoration: BoxDecoration(
-                           color: textFormColor,
-                           borderRadius: BorderRadius.circular(8)
-                         ),
-                         child: Column(
-                           mainAxisAlignment: MainAxisAlignment.center,
-                           children: [
-                             Text('${cs.comBlock[index]['blockedId']}',textAlign: TextAlign.center,),
-                           ],
+                       Expanded(
+                         flex: 2,
+                         child: Container(
+                           height: 64,
+                           decoration: BoxDecoration(
+                             color: textFormColor,
+                             borderRadius: BorderRadius.circular(8)
+                           ),
+                           child: Column(
+                             mainAxisAlignment: MainAxisAlignment.center,
+                             children: [
+                               Text('${cs.comBlock[index]['blockedId']}',textAlign: TextAlign.center,),
+                             ],
+                           ),
                          ),
                        ),
                        SizedBox(
                          width: 10,
                        ),
                        Expanded(
+                         flex: 1,
                          child: Container(
-                           height: context.isTablet ? 60 : 40,
+                           height: 64,
                            decoration: BoxDecoration(
                            borderRadius: BorderRadius.circular(8),
                          ),

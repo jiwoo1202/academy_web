@@ -16,6 +16,7 @@ class User {
   String? token;
   String? userType;
   String? year;
+  List? isBanned;
 
   User(
       {this.createDate,
@@ -31,6 +32,7 @@ class User {
         this.temp1,
         this.temp2,
         this.token,
+        this.isBanned,
         this.userType,
         this.year,});
 
@@ -39,6 +41,7 @@ class User {
         day = map['day'],
         docId = map['docId'],
         email = map['email'],
+        isBanned = map['isBanned'],
         group = map['group'],
         id = map['id'],
         month = map['month'],
@@ -58,6 +61,7 @@ class User {
       "docId": docId,
       "email" : email,
       "group" : group,
+      "isBanned" : isBanned,
       "id" : id,
       "month" : month,
       "name": name,
@@ -77,6 +81,7 @@ class User {
         createDate: doc['createDate'],
         day: doc['day'],
         email : doc['email'],
+      isBanned : doc['isBanned'],
         group: doc['group'],
         id : doc['id'],
         month : doc['month'],

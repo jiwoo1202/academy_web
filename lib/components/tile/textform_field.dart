@@ -13,6 +13,7 @@ class TextFormFields extends StatelessWidget {
   final List<TextInputFormatter>? inputFormatters;
   final String hintText;
   final bool? enableTrue;
+  final bool? enableText;
   final VoidCallback? onTap;
   final VoidCallback? textOnTap;
   final String? surffixIcon; //0 없음, 1 눈 아이콘, 2 등록
@@ -26,14 +27,15 @@ class TextFormFields extends StatelessWidget {
         required this.hintText,
         this.onTap,
         required this.surffixIcon,
-        this.textOnTap, this.keyboardType, this.enableTrue,
+        this.textOnTap, this.keyboardType, this.enableTrue, this.enableText : true,
 
       }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: Get.width,
+      width:GetPlatform.isWeb
+          ? Get.width * 0.5 : Get.width,
       padding: EdgeInsets.symmetric(vertical: 0),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8.0),
@@ -44,6 +46,7 @@ class TextFormFields extends StatelessWidget {
         onChanged: onChanged,
         obscureText: !obscureText,
         keyboardType: keyboardType,
+        enabled: enableText,
         style: f16w400,
         inputFormatters: inputFormatters,
         decoration: InputDecoration(

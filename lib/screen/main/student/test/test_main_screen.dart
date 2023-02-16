@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:academy/provider/answer_state.dart';
 import 'package:academy/provider/test_state.dart';
+import 'package:academy/util/behavior.dart';
 import 'package:academy/util/loading.dart';
 import 'package:get/get.dart';
 
@@ -11,7 +12,7 @@ import 'package:flutter_pdfview/flutter_pdfview.dart';
 import '../../../../firebase/firebase_test.dart';
 import '../../../../util/colors.dart';
 import '../../../../util/font.dart';
-
+import '../../../login/login_main_screen.dart';
 
 
 class TestMainScreen extends StatefulWidget {
@@ -131,7 +132,10 @@ class _TestMainScreenState extends State<TestMainScreen> {
             color: Color(0xff6f7072),
           ),
           onPressed: () {
-            Get.back();
+            showComponentDialog(context, '시험을 종료하시겠습니까?', () {
+              Get.offAll(() => BottomNavigator());
+            });
+
           },
         ),
         flexibleSpace: GestureDetector(
@@ -195,98 +199,102 @@ class _TestMainScreenState extends State<TestMainScreen> {
          isScrollControlled: true,
          builder: (builder){
            return StatefulBuilder(builder: (context, setState) {
-             return DraggableScrollableSheet(
-                 initialChildSize: 0.3,
-                 minChildSize: 0.1,
-                 maxChildSize: 0.7,
-                 expand: false,
-                 builder: (BuildContext context, ScrollController scrollController){
-                   return Column(
-                     children: [
-                       Row(
+             return ScrollConfiguration(
+               behavior: MyBehavior(),
+               child: DraggableScrollableSheet(
+                   initialChildSize: 0.5,
+                   maxChildSize: 0.5,
+                   minChildSize: 0.3,
+                   expand: false,
+                   builder: (BuildContext context, ScrollController scrollController){
+                     return Padding(
+                       padding: const EdgeInsets.fromLTRB(0, 25, 25, 0),
+                       child: Column(
                          children: [
-                           FloatingActionButton.extended(
-                             onPressed: () {
-                               showComponentDialog(context, '제출하시겠습니까?', () async {
-                                 // answerListAdd('SIg3OP2qqovlBZROIaRr');
-                                 ts.answer.value = _answer;
-                                 Get.back();
-                                 await firebaseTestUpload();
-                               });
-                             },
-                             icon: Icon(Icons.check),
-                             label: Text(
-                               '제출하기',
-                               style: f16Whitew500,
+                           Row(
+                             children: [
+                               TextButton(
+                                 onPressed: () {
+                                   showComponentDialog(context, '제출하시겠습니까?', () async {
+                                     // answerListAdd('SIg3OP2qqovlBZROIaRr');
+                                     ts.answer.value = _answer;
+                                     Get.back();
+                                     await firebaseTestUpload();
+                                   });
+                                 },
+                                 child: Text('제출',style: f18w700primary,),
+                               ),
+                             ],
+                             mainAxisAlignment: MainAxisAlignment.end,
+                           ),
+                           Expanded(
+                             child: ListView.builder(
+                               physics: const ClampingScrollPhysics(),
+                               shrinkWrap: true,
+                               itemCount: as.answerlength.length,
+                               controller: scrollController,
+                               itemBuilder: (_, index) {
+                                 return Padding(
+                                   padding: const EdgeInsets.all(20),
+                                   child: Column(
+                                     crossAxisAlignment: CrossAxisAlignment.start,
+                                     children: [
+                                       Text('${index + 1}번 문제', style: f18w500),
+                                       isLoading?LoadingBodyScreen():
+                                       Container(
+                                           height: 60,
+                                           child: ListView(
+                                             scrollDirection: Axis.horizontal,
+                                             children: number.map((number) {
+                                               return Row(
+                                                 children: [
+                                                   TextButton(
+                                                       onPressed: () {
+                                                         _answer[index] = number;
+                                                         setState(() {
+                                                         });
+                                                       },
+                                                       style: TextButton.styleFrom(
+                                                           minimumSize: Size(52,52),
+                                                           foregroundColor: Colors.transparent,
+                                                           backgroundColor: _answer[index]==number?nowColor:Colors.white,
+                                                           padding: EdgeInsets.only(right: 12, left: 12),
+                                                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                                           shape: RoundedRectangleBorder(
+                                                               borderRadius: BorderRadius.circular(20),
+                                                               side: BorderSide(
+                                                                   width: 1,
+                                                                   color: Colors.grey
+                                                               )
+                                                           )
+                                                       ),
+                                                       child: Text(
+                                                         '$number',
+                                                         style: _answer[index] == number
+                                                             ? f16Whitew700
+                                                             : f16w700,
+                                                       )),
+                                                   SizedBox(
+                                                     width: 10,
+                                                   )
+                                                 ],
+                                               );
+                                             }).toList(),
+                                           )),
+                                       const SizedBox(
+                                         height: 10,
+                                       ),
+                                     ],
+                                   ),
+                                 );
+                               },
                              ),
                            ),
                          ],
-                         mainAxisAlignment: MainAxisAlignment.end,
                        ),
-                       ListView.builder(
-                         physics: const ClampingScrollPhysics(),
-                         shrinkWrap: true,
-                         itemCount: as.answerlength.length,
-                         controller: scrollController,
-                         itemBuilder: (_, index) {
-                           return Padding(
-                             padding: const EdgeInsets.all(20),
-                             child: Column(
-                               crossAxisAlignment: CrossAxisAlignment.start,
-                               children: [
-                                 Text('${index + 1}번 문제', style: f18w500),
-                                 isLoading?LoadingBodyScreen():
-                                 Container(
-                                     height: 60,
-                                     child: ListView(
-                                       scrollDirection: Axis.horizontal,
-                                       children: number.map((number) {
-                                         return Row(
-                                           children: [
-                                             TextButton(
-                                                 onPressed: () {
-                                                   _answer[index] = number;
-                                                   setState(() {
-                                                   });
-                                                 },
-                                                 style: TextButton.styleFrom(
-                                                     minimumSize: Size(52,52),
-                                                     foregroundColor: Colors.transparent,
-                                                     backgroundColor: _answer[index]==number?nowColor:Colors.white,
-                                                     padding: EdgeInsets.only(right: 12, left: 12),
-                                                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                                     shape: RoundedRectangleBorder(
-                                                         borderRadius: BorderRadius.circular(20),
-                                                         side: BorderSide(
-                                                             width: 1,
-                                                             color: Colors.grey
-                                                         )
-                                                     )
-                                                 ),
-                                                 child: Text(
-                                                   '$number',
-                                                   style: _answer[index] == number
-                                                       ? f16Whitew700
-                                                       : f16w700,
-                                                 )),
-                                             SizedBox(
-                                               width: 10,
-                                             )
-                                           ],
-                                         );
-                                       }).toList(),
-                                     )),
-                                 const SizedBox(
-                                   height: 12,
-                                 ),
-                               ],
-                             ),
-                           );
-                         },
-                       ),
-                     ],
-                   );
-                 }
+                     );
+                   }
+               ),
              );
             }
            );

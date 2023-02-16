@@ -17,12 +17,17 @@ Future<void> firebaseTestUpload() async{
     // 'id' : us.number.value,
     'id' : '${us.userList[0].id}',
     'answerDocid':ts.answerDocId.value,
-    'teacher':as.getTeacherName.value
+    'teacher':as.getTeacherName.value,
+    'createDate':'${DateTime.now()}',
+    'status':'대기',
   }).then((doc) async {
     DocumentReference userDocRef = FirebaseFirestore.instance.collection('test').doc(doc.id);
     await userDocRef.update({'docId': '${doc.id}'});
     ts.testDocId.value = doc.id;
-    Get.to(() => TestCheckScreen(
+    Get.offAll(() => TestCheckScreen(
+      teacherName: as.getTeacherName.value,
+      docId: ts.answerDocId.value,
+      myPage: false,
     ));
     print('1111${as.docId.value}');
     print('ts value test : ${ts.testDocId.value}');
@@ -56,7 +61,7 @@ Future<void> firebaseAllQuestionGet(String id) async{
   // for(int i=0;i<a.length;i++){
   //   ts.teacherNameList.add(a[i]['teacher']);
   // }
-  print('선생님 명단${ts.teacherNameList.value}');
+  // print('선생님 명단${ts.teacherNameList.value}');
 }
 
 Future<void> firebaseSingleQuestionGet(String docId) async{
@@ -70,8 +75,8 @@ Future<void> firebaseSingleQuestionGet(String docId) async{
   print('real answer1241224124 : ${ts.mySingleAnswer.length}');
 }
 
-Future<void> firebaseIndividualTestUpload() async{
-  print('test ind in------------');
+Future<void> firebaseIndividualTestUpload() async {
+  print('test ind in——————');
   final ts = Get.put(TestState());
   final us = Get.put(UserState());
   final as = Get.put(AnswerState());
@@ -79,14 +84,15 @@ Future<void> firebaseIndividualTestUpload() async{
   ref.add({
     'answer': ts.answer,
     // 'id' : us.number.value,
-    'id' : '${us.userList[0].id}',
-    'createDate' : '${DateTime.now()}',
-    'status' : '완료',
-    'isIndividual' : 'true',
-    'answerDocid':ts.answerDocId.value,
-    'teacher':as.getTeacherName.value
+    'id': '${us.userList[0].id}',
+    'createDate': '${DateTime.now()}',
+    'status': '완료',
+    'isIndividual': 'true',
+    'answerDocid': ts.answerDocId.value,
+    'teacher': as.getTeacherName.value,
   }).then((doc) async {
-    DocumentReference userDocRef = FirebaseFirestore.instance.collection('test').doc(doc.id);
+    DocumentReference userDocRef = FirebaseFirestore.instance.collection('test')
+        .doc(doc.id);
     await userDocRef.update({'docId': '${doc.id}'});
     ts.testDocId.value = doc.id;
     // Get.to(() => TestCheckScreen(

@@ -1,10 +1,12 @@
+import 'package:academy/provider/job_state.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
+import '../../util/click_full_image.dart';
 import '../../util/colors.dart';
-import '../../util/font.dart';
+import '../../../util/font.dart';
 import '../../util/padding.dart';
 
 class CommunityDetail extends StatefulWidget {
@@ -72,6 +74,7 @@ class _CommunityDetailState extends State<CommunityDetail> {
 
   @override
   Widget build(BuildContext context) {
+    final js = Get.put(JobState());
     return GestureDetector(
       onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
       child: RefreshIndicator(
@@ -94,11 +97,7 @@ class _CommunityDetailState extends State<CommunityDetail> {
             Padding(
               padding: ph24,
               child: Text(
-                int.parse(widget.dateTime
-                            .difference(DateTime.parse('${widget.createDate}'))
-                            .inMinutes
-                            .toString()) <
-                        60
+                int.parse(widget.dateTime.difference(DateTime.parse('${widget.createDate}')).inMinutes.toString()) < 60
                     ? '${int.parse(widget.dateTime.difference(DateTime.parse('${widget.createDate}')).inMinutes.toString())}분 전'
                     : int.parse(widget.dateTime
                                 .difference(
@@ -118,57 +117,51 @@ class _CommunityDetailState extends State<CommunityDetail> {
                 ? Stack(
                     alignment: Alignment.center,
                     children: [
-                      CarouselSlider(
-                        items: [
-                          for (int i = 0; i < widget.image.length; i++)
-                            'https://firebasestorage.googleapis.com/v0/b/academy-957f7.appspot.com/o/picture%2F${widget.id}%2F${widget.docId}%2F${widget.image[i]}?alt=media'
-                          //   'https://firebasestorage.googleapis.com/v0/b/academy-957f7.appspot.com/o/asd.png?alt=media&token=d3708419-809b-4c8e-bd69-bd6bdfa002a6'
-                        ]
-                            .map((item) => ClipRRect(
-                                  borderRadius:
-                                      BorderRadius.all(Radius.circular(0.0)),
-                                  child: InkWell(
-                                      onTap: () {
-                                        // Navigator.of(context).push(
-                                        //     MaterialPageRoute(
-                                        //         builder: (context) =>
-                                        //             clickFullImages(
-                                        //                 listImagesModel: [
-                                        //                   for (int i = 0;
-                                        //                       i <
-                                        //                           _myStoryList[0]
-                                        //                                   [
-                                        //                                   'images']
-                                        //                               .length;
-                                        //                       i++)
-                                        //                     'https://firebasestorage.googleapis.com/v0/b/clicksound-af0c0.appspot.com/o/picture%2F${_myStoryList[0]['createId']}%2F${_myStoryList[0]['id']}%2F${image[i]}?alt=media'
-                                        //                 ],
-                                        //                 current:
-                                        //                     _current)));
-                                      },
-                                      child: ExtendedImage.network(
-                                        item,
-                                        fit: BoxFit.cover,
-                                        cache: true,
-                                        enableLoadState: false,
-                                      )),
-                                ))
-                            .toList(),
-                        carouselController: widget.carouselCon,
-                        options: CarouselOptions(
-                          autoPlay: false,
-                          padEnds: false,
-                          enlargeCenterPage: false,
-                          disableCenter: true,
-                          height: Get.height * 0.3,
-                          viewportFraction: 1,
-                          onPageChanged: (index, reason) {
-                            setState(() {
-                              print('hey');
-                              print('22 : ${currentIdx}');
-                              currentIdx = index;
-                            });
-                          },
+                      Container(
+                        padding: ph24,
+                        child: CarouselSlider(
+                          items: [
+                            for (int i = 0; i < widget.image.length; i++)
+                              'https://firebasestorage.googleapis.com/v0/b/academy-957f7.appspot.com/o/picture'
+                                  '%2F${widget.id}%2F${widget.docId}%2F${widget.image[i]}?alt=media'
+                            //   'https://firebasestorage.googleapis.com/v0/b/academy-957f7.appspot.com/o/asd.png?alt=media&token=d3708419-809b-4c8e-bd69-bd6bdfa002a6'
+                          ]
+                              .map((item) => ClipRRect(
+                                    borderRadius:
+                                        BorderRadius.all(Radius.circular(8.0)),
+                                    child: InkWell(
+                                        onTap: () {
+                                          Navigator.of(context).push(
+                                              MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      ClickFullImage(
+                                                          listImagesModel: [
+                                                            for (int i = 0; i < widget.image.length; i++)
+                                                              'https://firebasestorage.googleapis.com/v0/b/academy-957f7.appspot.com/o/picture'
+                                                                  '%2F${widget.id}%2F${widget.docId}%2F${widget.image[i]}?alt=media'
+                                                          ],
+                                                          current: currentIdx)));
+                                        },
+                                        child: ExtendedImage.network(
+                                          item,
+                                          fit: BoxFit.cover,
+                                          cache: true,
+                                          enableLoadState: false,
+                                        )),
+                                  )).toList(),
+                          carouselController: widget.carouselCon,
+                          options: CarouselOptions(
+                            autoPlay: false,
+                            padEnds: false,
+                            enlargeCenterPage: false,
+                            disableCenter: true,
+                            viewportFraction: 1,
+                            onPageChanged: (index, reason) {
+                              setState(() {
+                                currentIdx = index;
+                              });
+                            },
+                          ),
                         ),
                       ),
                       Positioned(
@@ -221,7 +214,60 @@ class _CommunityDetailState extends State<CommunityDetail> {
             const SizedBox(
               height: 20,
             ),
-            Divider(),
+            !widget.anonymous ? Container() : Padding(
+              padding: ph24,
+              child: Text(
+                '성별 : ${js.selectJobTile[0]['gender']}',
+                style: f16w400,
+              ),
+            ),
+            !widget.anonymous ? Container() : const SizedBox(
+              height: 10,
+            ),
+            !widget.anonymous ? Container() : Padding(
+              padding: ph24,
+              child: Text(
+                '나이 : ${js.selectJobTile[0]['age']}살 ${js.selectJobTile[0]['ageValue']}',
+                style: f16w400,
+              ),
+            ),
+            !widget.anonymous ? Container() : const SizedBox(
+              height: 10,
+            ),
+            !widget.anonymous ? Container() : Padding(
+              padding: ph24,
+              child: Text(
+                '급여 : ${js.selectJobTile[0]['payValue']} ${js.selectJobTile[0]['pay']} '
+                    '${js.selectJobTile[0]['pay'] == '협의' ? '' : '만원'}',
+                style: f16w400,
+              ),
+            ),
+            !widget.anonymous ? Container() : const SizedBox(
+              height: 10,
+            ),
+            !widget.anonymous ? Container() : Padding(
+              padding: ph24,
+              child: Text(
+                '시간 : ${js.selectJobTile[0]['openH'].toString().padLeft(2,'0')} : '
+                    '${js.selectJobTile[0]['openM'].toString().padLeft(2,'0')} ~ '
+                    '${js.selectJobTile[0]['closeH'].toString().padLeft(2,'0')} : '
+                    '${js.selectJobTile[0]['closeM'].toString().padLeft(2,'0')}',
+                style: f16w400,
+              ),
+            ),
+            !widget.anonymous ? Container() : const SizedBox(
+              height: 20,
+            ),
+            SizedBox(
+              width: Get.width,
+              height: 1,
+              child: Divider(
+                thickness: 1,
+              ),
+            ),
+            const SizedBox(
+              height: 20,
+            ),
             Padding(
               padding: ph24,
               child: Text(

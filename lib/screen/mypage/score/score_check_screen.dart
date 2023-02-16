@@ -9,6 +9,7 @@ import '../../../firebase/firebase_test.dart';
 import '../../../provider/test_state.dart';
 import '../../../provider/user_state.dart';
 import '../../../util/colors.dart';
+
 import '../../../util/font.dart';
 import '../../main/student/test/individual/test_individual_screen.dart';
 import '../../main/student/test/test_check_screen.dart';
@@ -53,7 +54,7 @@ class _ScoreCheckScreenState extends State<ScoreCheckScreen> {
             color: Color(0xff6f7072),
           ),
           onPressed: () {
-            Get.back();
+              Get.back();
           },
         ),
         shape: RoundedRectangleBorder(
@@ -97,7 +98,8 @@ class _ScoreCheckScreenState extends State<ScoreCheckScreen> {
                           ts.answerDocId.value = ts.myAnswer[index]['answerDocid'];
                           Get.to(() => TestCheckScreen(
                               teacherName:ts.myAnswer[index]['teacher'],
-                              docId: ts.myAnswer[index]['answerDocid']
+                              docId: ts.myAnswer[index]['answerDocid'],
+                              myPage : true
                           ));
                         }
                       }

@@ -1,4 +1,6 @@
+import 'package:academy/util/colors.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class MainButton extends StatelessWidget {
   final bool disabled;
@@ -15,15 +17,21 @@ class MainButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: MediaQuery.of(context).size.width,
-      height: MediaQuery.of(context).size.height*0.07,
+      width: GetPlatform.isWeb
+          ? MediaQuery.of(context).size.width * 0.3
+          : MediaQuery.of(context).size.width,
+      height: GetPlatform.isWeb
+          ? MediaQuery.of(context).size.height * 0.05
+          : MediaQuery.of(context).size.height * 0.07,
       child: ElevatedButton(
         onPressed: disabled ? null : onPressed,
         style: ElevatedButton.styleFrom(
-            backgroundColor: Color(0xff3A8EFF),
+            backgroundColor:  GetPlatform.isWeb
+                ? nowColor :Color(0xff3A8EFF),
             padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             elevation: 0,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0))),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.0))),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [

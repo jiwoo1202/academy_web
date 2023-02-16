@@ -16,6 +16,9 @@ class UserState extends GetxController{
   final year = ''.obs;
   final month = ''.obs;
   final day = ''.obs;
+  final findPassWord = ''.obs;
+  final isLogin = ''.obs;
+
   void increase(){
     count.value ++;
     update();
@@ -38,7 +41,8 @@ class UserState extends GetxController{
           year: year,
           month: month,
           day: day,
-          userType: userType
+          userType: userType,
+          isBanned: []
       );
       await docRef.set(docUser.toMap());
     }catch(e){

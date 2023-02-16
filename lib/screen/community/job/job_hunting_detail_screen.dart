@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
 import '../../../components/community/community_detail.dart';
 import '../../../components/dialog/showAlertDialog.dart';
@@ -206,7 +207,7 @@ class _JobHuntingDetailScreenState extends State<JobHuntingDetailScreen> {
                 who: '${js.jobTeacher}',
                 dateTime: DateTime.now(),
                 hasImage: '${js.jobHasImage}',
-                createDate: '2023-01-19 09:30',
+                createDate: '${js.selectJobTile[0]['createDate']}',
                 image: js.jobList,
                 id: '${js.jobTeacher.value}',
                 docId: '${js.jobDocId.value}',
@@ -322,6 +323,7 @@ class _JobHuntingDetailScreenState extends State<JobHuntingDetailScreen> {
                                                 ///comment 차단
                                                 Future.delayed(Duration.zero, () async {
                                                   showEditDialog(context, '신고 사유를 입력해주세요' ,() async {
+                                                    Get.back();
                                                     showOnlyConfirmDialog(context, '신고했습니다');
                                                     await firebaseBlockCreate(
                                                       '${us.userList[0].phoneNumber}',

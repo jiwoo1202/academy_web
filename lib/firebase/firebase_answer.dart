@@ -19,7 +19,6 @@ Future<void> firebaseAnswerUpload(UploadTask? uploadTask) async {
       individualBody: [],
       individualTitle: [],
       individualFile: [],
-      images : [],
       createDate: '${DateTime.now()}',
       answer: as.answer.toList(),
       answerCount: '',
@@ -32,11 +31,13 @@ Future<void> firebaseAnswerUpload(UploadTask? uploadTask) async {
       state: '대기',
       teacher: '${as.teacher}',
       temp1: '',
-      temp2: '');
+      temp2: '', images: [],
+      );
   ref.add(ass.toMap()).then((doc) async {
     DocumentReference userDocRef =
         FirebaseFirestore.instance.collection('answer').doc(doc.id);
     as.docId.value = doc.id;
+
     // print('1: ${as.docId}');
     _uploadFile(as.teacher.value, as, uploadTask);
     await userDocRef.update({'docId': '${doc.id}'});
@@ -104,6 +105,7 @@ Future<void> firebaseIndividualGet(String docId) async {
   ts.individualTestGet.value = allData;
 }
 
+
 // state가 대기인 상태만 가져오는 함수(추가)
 Future<void> getState(String state) async {
   final as = Get.put(AnswerState());
@@ -156,14 +158,11 @@ Future<void> getNameAndDate(String docId) async {
   // print('11||${as.answerlength.value}');
 }
 
-// individual test 수정
-Future<void> deleteIndividualTest(String docId) async {
-  CollectionReference ref =
-  FirebaseFirestore.instance.collection('answer');
-  QuerySnapshot snapshot = await ref
-      .where('docId', isEqualTo:docId)
-      .get();
-  snapshot.docs[0].reference.delete();
+Future<void>  deleteAnswer(String docId) async{
+  DocumentReference ref = FirebaseFirestore.instance.collection('answer').doc(docId);
+  ref.update({
+    'state' : '삭제'
+  });
 }
 
 class FirebaseStorageApi {
@@ -188,3 +187,37 @@ class FirebaseStorageApi {
     return paths;
   }
 }
+
+// individual test 수정
+Future<void> deleteIndividualTest(String docId) async {
+  CollectionReference ref =
+  FirebaseFirestore.instance.collection('answer');
+  QuerySnapshot snapshot = await ref
+      .where('docId', isEqualTo:docId)
+      .get();
+  snapshot.docs[0].reference.delete();
+}
+// getAnswerLength('${as.getDocid[index]}');
+//                 ts.answerDocId.value = '${as.getDocid[index]}';
+//                 as.getTeacherName.value =
+//                     '${as.teacherList[index]}';
+//                 getTeacherPassword(ts.answerDocId.value);
+//                     '${DateFormat('yyyy-MM-dd HH:mm').format(DateTime.parse(as.createList[index]))}';
+//                 showPasswordDialog(context, '비밀번호', () async {
+//                   if (_pwcontroller.text == ts.teacherPassword.value) {
+//                     if(as.stateList[index]['isIndividual'] == 'true'){
+//                       Get.back();
+//                       Get.to(() => TestIndividual(docId: as.stateList[index]['docId'],));
+//                     }else{
+//                       final url =
+//                           'https://firebasestorage.googleapis.com/v0/b/academy-957f7.appspot.com/o/12345%2F12345%2F${as.getDocid[index]}.pdf?alt=media&token=5bcde09c-3145-4cdd-bbf8-886299c8a44f';
+//                       final file = await PDFApi.loadNetwork(url);
+//                       Get.back();
+//                       Get.to(() => TestMainScreen(file: file));
+//                     }
+//                   } else {
+//                     Get.back();
+//                     showOnlyConfirmDialog(context, '비밀번호가 맞지 않습니다');
+//                     print('꽝');
+//                   }
+//                 }, _pwcontroller);

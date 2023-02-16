@@ -9,6 +9,7 @@ import '../../../../provider/answer_state.dart';
 import '../../../../provider/user_state.dart';
 import '../../../../util/colors.dart';
 import '../../../../util/font.dart';
+import '../../../../util/font.dart';
 
 class PdfUploadIndividualScreen extends StatefulWidget {
   final int idx;
@@ -37,6 +38,7 @@ class _PdfUploadIndividualScreenState extends State<PdfUploadIndividualScreen> {
   bool secondTrue = false;
   bool titleTrue = false;
   bool contentTrue = false;
+  bool tmpidx = false;
   List<String> number = ['1', '2', '3', '4', '5'];
 
   // List<String> _answer = ['', '', '','',''];
@@ -93,10 +95,9 @@ class _PdfUploadIndividualScreenState extends State<PdfUploadIndividualScreen> {
           backgroundColor: Colors.white,
           elevation: 0,
           leading: IconButton(
-            icon: SvgPicture.asset(
-              'assets/icon/back.svg',
-              width: 7,
-              height: 14,
+            icon: Icon(
+              Icons.arrow_back_ios_new,
+              color: Color(0xff6f7072),
             ),
             onPressed: () {
               as.individualTitle.value[widget.idx] = _testNameController.text;
@@ -124,7 +125,6 @@ class _PdfUploadIndividualScreenState extends State<PdfUploadIndividualScreen> {
                 } else {
                   as.essayList.value[widget.idx] = _testEssayCon.text;
                 }
-
                 if (firstTrue) {
                   as.choiceList.value[widget.idx] = '';
                 }
@@ -166,9 +166,10 @@ class _PdfUploadIndividualScreenState extends State<PdfUploadIndividualScreen> {
                       behavior: HitTestBehavior.opaque,
                       onTap: () {
                         firstTrue = !firstTrue;
-                        // as.essayList.value[widget.idx] = '$firstTrue';
                         print('주관식');
-                        setState(() {});
+                        setState(() {
+
+                        });
                       },
                       child: SvgPicture.asset(firstTrue
                           ? 'assets/checkBox.svg'
@@ -199,7 +200,6 @@ class _PdfUploadIndividualScreenState extends State<PdfUploadIndividualScreen> {
                 //     ],
                 //   ),
                 // ),
-
                 Text(
                   '문제 제목',
                   style: f18w400,

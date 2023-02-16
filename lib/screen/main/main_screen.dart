@@ -3,11 +3,9 @@ import 'package:get/get.dart';
 
 import '../../../provider/user_state.dart';
 import '../../components/dialog/showAlertDialog.dart';
-import '../../util/font.dart';
+import '../../../util/font.dart';
 import 'student/student_screen.dart';
-import 'student/test/individual/test_individual_screen.dart';
 import 'teacher/individual/pdf_individual_main_screen.dart';
-import 'teacher/individual/pdf_upload_individual_screen.dart';
 import 'teacher/all/pdf_upload_screen.dart';
 import 'teacher/teacher_screen.dart';
 
@@ -21,6 +19,15 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
+  @override
+  void initState(){
+    Future.delayed(Duration.zero,(){
+      final us = Get.put(UserState());
+      print("유저타::${us.userList[0].userType}");
+    });
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     final us = Get.put(UserState());

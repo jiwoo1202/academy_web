@@ -1,8 +1,10 @@
+import 'package:academy/components/dialog/showAlertDialog.dart';
 import 'package:academy/components/tile/textform_field.dart';
 import 'package:academy/provider/user_state.dart';
 import 'package:academy/screen/login/login_main_screen.dart';
 import 'package:academy/screen/register/policy.dart';
 import 'package:academy/screen/register/privatePolicy.dart';
+import 'package:academy/util/colors.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -10,10 +12,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
+import 'dart:html' as html;
 
-import '../../firebase/firebase_user.dart';
+import '../../components/footer/footer.dart';
 import '../../util/font.dart';
-import '../../util/loading.dart';
 
 class RegisterMainScreen extends StatefulWidget {
   static final String id = '/register_main';
@@ -109,524 +111,833 @@ class _RegisterMainScreenState extends State<RegisterMainScreen>
           elevation: 0,
           backgroundColor: Colors.white,
         ),
-        body: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 25, 24, 0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Text('${us.id}',style: f16w500,),
-              // Obx(() =>Text('${us.id}',style: f16w500,)),
-              Row(
-                children: [
-                  SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.6,
-                    child: TextFormFields(
-                        controller: _idCon,
-                        onChanged: (v) {
-                          us.id.value = _idCon.text.trim();
-                        },
-                        obscureText: true,
-                        hintText: "아이디",
-                        surffixIcon: "0"),
-                  ),
-                  SizedBox(
-                    width: 10,
-                  ),
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Color(0xffEBEBEB),
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          primary: Color(0xffEBEBEB),
-                          elevation: 0,
-                        ),
-                        onPressed: () async {
-                          print('중복검사');
-                          if (RegExp(r"^[a-zA-Z|0-9]*$")
-                                  .hasMatch(_idCon.text) ==
-                              true) {
-                            await registerIdCheck(us.id.value);
-                            if (idCheck == false) {
-                              setState(() {
-                                idCheck = false;
-                              });
-                            } else {
-                              setState(() {
-                                idCheck = true;
-                              });
-                            }
-                            showDialog(
-                                context: context,
-                                builder: (BuildContext context) => AlertDialog(
-                                      content: idCheck == false
-                                          ? Text('사용불가능한 아이디 입니다.')
-                                          : Text('사용가능한 아이디 입니다.'),
-                                      actions: [
-                                        ElevatedButton(
-                                            onPressed: () {
-                                              Navigator.of(context).pop();
-                                            },
-                                            child: Text('네'))
-                                      ],
-                                    ));
-                          } else {
-                            showDialog(
-                                context: context,
-                                builder: (BuildContext context) => AlertDialog(
-                                      content: Text('아이디는 영어랑 숫자만 입력 가능합니다.'),
-                                      actions: [
-                                        ElevatedButton(
-                                            onPressed: () {
-                                              Navigator.of(context).pop();
-                                            },
-                                            child: Text('네'))
-                                      ],
-                                    ));
-                          }
-                        },
-                        child: Text(
-                          '중복 체크',
-                          style: TextStyle(
-                              color: Color(0xff3A8EFF),
-                              fontFamily: "Pretendard",
-                              fontWeight: FontWeight.w700,
-                              fontSize: 16),
-                        ),
-                      ),
-                    ),
-                  )
-                ],
-              ),
-              const SizedBox(
-                height: 16,
-              ),
-              TextFormFields(
-                controller: _pwCon,
-                onChanged: (v) {
-                  us.pw.value = _pwCon.text.trim();
-                },
-                obscureText: _obscureText,
-                hintText: '비밀번호를 입력해주세요',
-                surffixIcon: "1",
-                onTap: () {
-                  setState(() {
-                    _obscureText = !_obscureText;
-                  });
-                },
-              ),
-              const SizedBox(
-                height: 16,
-              ),
-              Row(
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: TextFormFields(
-                        controller: _phoneCon,
-                        onChanged: (v) {
-                          us.number.value = _phoneCon.text.trim();
-                        },
-                        obscureText: true,
-                        hintText: '휴대폰 번호를 입력해주세요',
-                        keyboardType: TextInputType.number,
-                        surffixIcon: '0'),
-                  ),
-                  SizedBox(
-                    width: 10,
-                  ),
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Color(0xffEBEBEB),
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          primary: Color(0xffEBEBEB),
-                          elevation: 0,
-                        ),
-                        onPressed: () async {
-                          //휴대폰 인증번호 보내기
-                          _auth.verifyPhoneNumber(
-                            phoneNumber: '+82${_phoneCon.text}',
-                            verificationCompleted:
-                                (PhoneAuthCredential credential) async {
-                              await _auth
-                                  .signInWithCredential(credential)
-                                  .then((value) => print('success'));
+        body: SingleChildScrollView(
+          physics: const ClampingScrollPhysics(),
+          scrollDirection: Axis.vertical,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 25, 24, 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Text('${us.id}',style: f16w500,),
+                // Obx(() =>Text('${us.id}',style: f16w500,)),
+                Row(
+                  children: [
+                    GetPlatform.isWeb
+                        ? TextFormFields(
+                            controller: _idCon,
+                            onChanged: (v) {
+                              us.id.value = _idCon.text.trim();
                             },
-                            verificationFailed: (verificationFalied) async {
-                              print('실패했습니다.');
-                              print('${verificationFalied.message}');
+                            obscureText: true,
+                            hintText: "아이디",
+                            surffixIcon: "0")
+                        : Expanded(
+                            flex: 2,
+                            child: TextFormFields(
+                                controller: _idCon,
+                                onChanged: (v) {
+                                  us.id.value = _idCon.text.trim();
+                                },
+                                obscureText: true,
+                                hintText: "아이디",
+                                surffixIcon: "0"),
+                          ),
+                    SizedBox(
+                      width: 10,
+                    ),
+                    GetPlatform.isWeb
+                        ? GestureDetector(
+                            onTap: () async {
+                              if (_idCon.text == '') {
+                                showOnlyConfirmDialog(
+                                    context, "공백은 입력 불가능 합니다.");
+                              } else {
+                                if (RegExp(r"^[a-zA-Z|0-9]*$")
+                                        .hasMatch(_idCon.text) ==
+                                    true) {
+                                  await registerIdCheck(us.id.value);
+                                  if (idCheck == false) {
+                                    setState(() {
+                                      idCheck = false;
+                                    });
+                                  } else {
+                                    setState(() {
+                                      idCheck = true;
+                                    });
+                                  }
+                                  idCheck == false
+                                      ? showOnlyConfirmDialog(
+                                          context, '사용불가능한 아이디입니다.')
+                                      : showOnlyConfirmDialog(
+                                          context, '사용가능한 아이디입니다.');
+                                } else {
+                                  showOnlyConfirmDialog(
+                                      context, '아이디는 영어랑 숫자만 입력 가능합니다.');
+                                }
+                              }
                             },
-                            codeSent: (verifiationId,resendingToken) async {
-                              print('코드를 보냈습니다.');
-                              setState(() {
-                                verificationId = verifiationId;
-                              });
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 24, vertical: 10),
+                              decoration: BoxDecoration(
+                                color: Color(0xffEBEBEB),
+                                borderRadius: BorderRadius.circular(8.0),
+                              ),
+                              child: Text(
+                                '중복 체크',
+                                style: TextStyle(
+                                    color: nowColor,
+                                    fontFamily: "Pretendard",
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 16),
+                              ),
+                            ),
+                          )
+                        : Expanded(
+                            flex: 1,
+                            child: GestureDetector(
+                              onTap: () async {
+                                if (_idCon.text == '') {
+                                  showOnlyConfirmDialog(
+                                      context, "공백은 입력 불가능 합니다.");
+                                } else {
+                                  if (RegExp(r"^[a-zA-Z|0-9]*$")
+                                          .hasMatch(_idCon.text) ==
+                                      true) {
+                                    await registerIdCheck(us.id.value);
+                                    if (idCheck == false) {
+                                      setState(() {
+                                        idCheck = false;
+                                      });
+                                    } else {
+                                      setState(() {
+                                        idCheck = true;
+                                      });
+                                    }
+                                    idCheck == false
+                                        ? showOnlyConfirmDialog(
+                                            context, '사용불가능한 아이디입니다.')
+                                        : showOnlyConfirmDialog(
+                                            context, '사용가능한 아이디입니다.');
+                                  } else {
+                                    showOnlyConfirmDialog(
+                                        context, '아이디는 영어랑 숫자만 입력 가능합니다.');
+                                  }
+                                }
+                              },
+                              child: Container(
+                                height: 50,
+                                decoration: BoxDecoration(
+                                  color: Color(0xffEBEBEB),
+                                  borderRadius: BorderRadius.circular(8.0),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      '중복체크',
+                                      style: TextStyle(
+                                          color: Color(0xff3A8EFF),
+                                          fontFamily: "Pretendard",
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 16),
+                                    )
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                  ],
+                ),
+                const SizedBox(
+                  height: 16,
+                ),
+                TextFormFields(
+                  controller: _pwCon,
+                  onChanged: (v) {
+                    us.pw.value = _pwCon.text.trim();
+                  },
+                  obscureText: _obscureText,
+                  hintText: '비밀번호를 입력해주세요',
+                  surffixIcon: '1',
+                  onTap: () {
+                    setState(() {
+                      _obscureText = !_obscureText;
+                    });
+                  },
+                ),
+                const SizedBox(
+                  height: 16,
+                ),
+                Row(
+                  children: [
+                    GetPlatform.isWeb
+                        ? TextFormFields(
+                            controller: _phoneCon,
+                            onChanged: (v) {
+                              us.number.value = _phoneCon.text.trim();
                             },
-                            codeAutoRetrievalTimeout: (verificationId) async {},
-                          );
-                        },
-                        child: Text(
-                          '인증번호',
-                          style: TextStyle(
-                              color: Color(0xff3A8EFF),
-                              fontFamily: "Pretendard",
-                              fontWeight: FontWeight.w700,
-                              fontSize: 16),
-                        ),
-                      ),
+                            obscureText: true,
+                            enableText: !_phoneAuth,
+                            hintText: '휴대폰 번호를 입력해주세요',
+                            keyboardType: TextInputType.number,
+                            surffixIcon: '0',
+                            inputFormatters: [
+                              LengthLimitingTextInputFormatter(13),
+                              FilteringTextInputFormatter.digitsOnly,
+                              MaskTextInputFormatter(mask: '###-####-####')
+                            ],
+                          )
+                        : Expanded(
+                            flex: 2,
+                            child: TextFormFields(
+                              controller: _phoneCon,
+                              onChanged: (v) {
+                                us.number.value = _phoneCon.text.trim();
+                              },
+                              obscureText: true,
+                              hintText: '휴대폰 번호를 입력해주세요',
+                              keyboardType: TextInputType.number,
+                              surffixIcon: '0',
+                              inputFormatters: [
+                                LengthLimitingTextInputFormatter(13),
+                                FilteringTextInputFormatter.digitsOnly,
+                                MaskTextInputFormatter(mask: '###-####-####')
+                              ],
+                            ),
+                          ),
+                    SizedBox(
+                      width: 10,
                     ),
-                  )
-                ],
-              ),
-              const SizedBox(
-                height: 16,
-              ),
-              Row(
-                children: [
-                  Expanded(
-                  flex: 2,
-                    child: TextFormFields(
-                        controller: _otpCon,
-                        inputFormatters: [
-                          LengthLimitingTextInputFormatter(13),
-                          FilteringTextInputFormatter.digitsOnly,
-                        ],
-                        obscureText: true,
-                        hintText: '인증번호를 입력해주세요',
-                        surffixIcon: '0'),
-                  ),
-                  SizedBox(
-                    width: 10,
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Color(0xffEBEBEB),
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          primary: Color(0xffEBEBEB),
-                          elevation: 0,
-                        ),
-                        onPressed: () {
-                          if (_doubleCheck == 0) {
-                            PhoneAuthCredential phoneAuthCredential =
-                                PhoneAuthProvider.credential(
-                                    verificationId: verificationId,
-                                    smsCode: _otpCon.text);
-                            signInWithPhoneAuthCredential(phoneAuthCredential);
-                          } else {
-                            print('2');
-                          }
-                          setState(() {});
-                        },
-                        child: Text(
-                          '인증번호 확인 ',
-                          style: TextStyle(
-                              color: Color(0xff3A8EFF),
-                              fontFamily: "Pretendard",
-                              fontWeight: FontWeight.w700,
-                              fontSize: 16),
-                        ),
-                      ),
+                    GetPlatform.isWeb
+                        ? GestureDetector(
+                            onTap: () {
+                              //휴대폰 인증번호 보내기
+                              if (_phoneCon.text.trim().isEmpty) {
+                                showOnlyConfirmDialog(context, '번호를 입력해주세요');
+                              } else {
+                                _auth.verifyPhoneNumber(
+                                  phoneNumber: '+82${_phoneCon.text}',
+                                  verificationCompleted:
+                                      (PhoneAuthCredential credential) async {
+                                    await _auth
+                                        .signInWithCredential(credential)
+                                        .then((value) => print('success'));
+                                  },
+                                  verificationFailed:
+                                      (verificationFalied) async {
+                                    showOnlyConfirmDialog(
+                                        context, "인증번호 보내기가 실패하였습니다.");
+                                    print('${verificationFalied.message}');
+                                  },
+                                  codeSent:
+                                      (verifiationId, resendingToken) async {
+                                    showOnlyConfirmDialog(
+                                        context, "인증번호를 보냈습니다");
+                                    setState(() {
+                                      verificationId = verifiationId;
+                                    });
+                                  },
+                                  timeout: Duration(seconds: 30),
+                                  codeAutoRetrievalTimeout:
+                                      (verificationId) async {},
+                                );
+                              }
+                            },
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 24, vertical: 10),
+                              decoration: BoxDecoration(
+                                color: Color(0xffEBEBEB),
+                                borderRadius: BorderRadius.circular(8.0),
+                              ),
+                              child: Text(
+                                '인증번호',
+                                style: TextStyle(
+                                    color: nowColor,
+                                    fontFamily: "Pretendard",
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 16),
+                              ),
+                            ),
+                          )
+                        : Expanded(
+                            flex: 1,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Color(0xffEBEBEB),
+                                borderRadius: BorderRadius.circular(8.0),
+                              ),
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  primary: Color(0xffEBEBEB),
+                                  elevation: 0,
+                                ),
+                                onPressed: () async {
+                                  //휴대폰 인증번호 보내기
+                                  _auth.verifyPhoneNumber(
+                                    phoneNumber: '+82${_phoneCon.text}',
+                                    verificationCompleted:
+                                        (PhoneAuthCredential credential) async {
+                                      await _auth
+                                          .signInWithCredential(credential)
+                                          .then((value) => print('success'));
+                                    },
+                                    verificationFailed:
+                                        (verificationFalied) async {
+                                      showOnlyConfirmDialog(
+                                          context, "인증번호 보내기가 실패하였습니다.");
+                                      print('${verificationFalied.message}');
+                                    },
+                                    codeSent:
+                                        (verifiationId, resendingToken) async {
+                                      showOnlyConfirmDialog(
+                                          context, "인증번호를 보냈습니다");
+                                      setState(() {
+                                        verificationId = verifiationId;
+                                      });
+                                    },
+                                    timeout: Duration(seconds: 30),
+                                    codeAutoRetrievalTimeout:
+                                        (verificationId) async {},
+                                  );
+                                },
+                                child: Text(
+                                  '인증번호',
+                                  style: TextStyle(
+                                      color: Color(0xff3A8EFF),
+                                      fontFamily: "Pretendard",
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 16),
+                                ),
+                              ),
+                            ),
+                          )
+                  ],
+                ),
+                const SizedBox(
+                  height: 16,
+                ),
+                Row(
+                  children: [
+                    GetPlatform.isWeb
+                        ? TextFormFields(
+                            controller: _otpCon,
+                            inputFormatters: [
+                              LengthLimitingTextInputFormatter(6),
+                              FilteringTextInputFormatter.digitsOnly,
+                            ],
+                            obscureText: true,
+                            hintText: '인증번호를 입력해주세요',
+                            surffixIcon: '0',
+                            enableText: !_phoneAuth,
+                            keyboardType: TextInputType.number,
+                          )
+                        : Expanded(
+                            flex: 2,
+                            child: TextFormFields(
+                              controller: _otpCon,
+                              inputFormatters: [
+                                LengthLimitingTextInputFormatter(6),
+                                FilteringTextInputFormatter.digitsOnly,
+                              ],
+                              obscureText: true,
+                              hintText: '인증번호를 입력해주세요',
+                              surffixIcon: '0',
+                              keyboardType: TextInputType.number,
+                            ),
+                          ),
+                    SizedBox(
+                      width: 10,
                     ),
-                  )
-                ],
-              ),
-              SizedBox(
-                height: 7,
-              ),
-              _phoneAuth == true
-                  ? Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Container(
-                          child: Text('인증에 성공하였습니다.'),
-                        ),
-                      ],
-                    )
-                  : Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        Text('인증에 실패했습니다.'),
-                      ],
-                    ),
-              const SizedBox(
-                height: 16,
-              ),
-              TextFormFields(
-                controller: _nameCon,
-                obscureText: true,
-                hintText: '이름',
-                surffixIcon: '0',
-                keyboardType: TextInputType.text,
-              ),
-              const SizedBox(
-                height: 16,
-              ),
-              TextFormFields(
-                controller: _birthCon,
-                onChanged: (v) {
-                  us.year.value = _birthCon.text.split('/')[0];
-                  us.month.value = _birthCon.text.split('/')[1];
-                  us.day.value = _birthCon.text.split('/')[2];
-                },
-                inputFormatters: [
-                  LengthLimitingTextInputFormatter(10),
-                  FilteringTextInputFormatter.digitsOnly,
-                  maskFormatter2
-                ],
-                obscureText: true,
-                hintText: '생년월일',
-                surffixIcon: "0",
-                keyboardType: TextInputType.number,
-              ),
-              SizedBox(
-                height: 16,
-              ),
-              Row(
-                children: [
-                  SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.05,
-                    width: MediaQuery.of(context).size.width * 0.45,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          typeCheck = false;
-                          us.userType.value = '학생';
-                          print('${us.userType.value}');
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          elevation: 0,
-                          side: BorderSide(
-                              width: 1,
-                              color: typeCheck
-                                  ? Colors.white
-                                  : Color(0xff3A8EFF))),
-                      child: Text(
-                        '학생으로 가입',
-                        style: TextStyle(color: Colors.black),
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    width: 10,
-                  ),
-                  Expanded(
-                    child: SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.05,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          setState(() {
-                            typeCheck = true;
-                            us.userType.value = '선생님';
-                            print('${us.userType.value}');
-                          });
-                        },
-                        style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.white,
-                            elevation: 0,
-                            side: BorderSide(
-                                width: 1,
-                                color: typeCheck
-                                    ? Color(0xff3A8EFF)
-                                    : Colors.white)),
-                        child: Text(
-                          '선생님으로 가입',
-                          style: TextStyle(color: Colors.black),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              // Container(
-              //   decoration: BoxDecoration(
-              //       borderRadius: BorderRadius.all(Radius.circular(10)),
-              //       border: Border.all(width: 1.0)),
-              //   child: DropdownButton<String>(
-              //     isExpanded: true,
-              //     value: selectedValue,
-              //     hint: Text('타입을 선택해주세요'),
-              //     onChanged: (newValue) {
-              //       setState(() {
-              //         selectedValue = newValue;
-              //         us.userType.value = selectedValue!;
-              //       });
-              //     },
-              //     items: <String>['학생', '선생']
-              //         .map<DropdownMenuItem<String>>((String value) {
-              //       // ignore: missing_required_param
-              //       return DropdownMenuItem<String>(
-              //         value: value,
-              //         child: Text(
-              //           value,
-              //         ),
-              //       );
-              //     }).toList(),
-              //   ),
-              // ),
-              SizedBox(
-                height: 12,
-              ),
-              // ElevatedButton(
-              //     onPressed: () {
-              //       if (_idCon.text.trim().isEmpty == true ||
-              //           _pwCon.text.trim().isEmpty == true ||
-              //           _phoneCon.text.trim().isEmpty == true ||
-              //           _nameCon.text.trim().isEmpty == true ||
-              //           _birthCon.text.trim().isEmpty == true) {
-              //         showDialog(
-              //             context: context,
-              //             builder: (BuildContext context) => AlertDialog(
-              //                   content: Text('모든 칸에 입력해주세요'),
-              //                   actions: [
-              //                     ElevatedButton(
-              //                         onPressed: () {
-              //                           Navigator.of(context).pop();
-              //                         },
-              //                         child: Text('네'))
-              //                   ],
-              //                 ));
-              //       } else {
-              //         us.addUser(
-              //             us.id.value,
-              //             us.pw.value,
-              //             us.number.value,
-              //             us.name.value,
-              //             us.year.value,
-              //             us.month.value,
-              //             us.day.value,
-              //             us.userType.value);
-              //         showDialog(
-              //             context: context,
-              //             builder: (BuildContext context) => AlertDialog(
-              //                   content: Text('회원가입이 완료되었습니다.'),
-              //                   actions: [
-              //                     ElevatedButton(
-              //                         onPressed: () {
-              //                           Navigator.of(context).pop();
-              //                         },
-              //                         child: Text('네'))
-              //                   ],
-              //                 ));
-              //       }
-              //       ;
-              //     },
-              //     child: Text('회원가입 완료'))
-              Row(
-                children: [
-                  policyCheck == false
-                      ? GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () {
-                            print('이용약관 처리');
-                            setState(() {
-                              policyCheck = true;
-                            });
-                          },
-                          child: SvgPicture.asset('assets/notcheckBox.svg'),
-                        )
-                      : GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () {
-                            print('이용약관 처리');
-                            setState(() {
-                              policyCheck = false;
-                            });
-                          },
-                          child: SvgPicture.asset('assets/checkBox.svg'),
-                        ),
-                  SizedBox(
-                    width: 10,
-                  ),
-                  Text(
-                    '이용약관',
-                    style: TextStyle(
-                        fontFamily: 'Pretendard',
-                        fontSize: 16,
-                        fontWeight: FontWeight.w400),
-                  ),
-                  Spacer(),
-                  TextButton(
-                      onPressed: () {
-                        Get.toNamed(PolicyPage.id);
-                      },
-                      child: Row(
+                    GetPlatform.isWeb
+                        ? GestureDetector(
+                            onTap: () {
+                              if (_doubleCheck == 0) {
+                                PhoneAuthCredential phoneAuthCredential =
+                                    PhoneAuthProvider.credential(
+                                        verificationId: verificationId,
+                                        smsCode: _otpCon.text);
+                                signInWithPhoneAuthCredential(
+                                    phoneAuthCredential);
+                              } else {
+                                print('2');
+                              }
+                              setState(() {});
+                            },
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 24, vertical: 10),
+                              decoration: BoxDecoration(
+                                color: Color(0xffEBEBEB),
+                                borderRadius: BorderRadius.circular(8.0),
+                              ),
+                              child: Text(
+                                '인증번호 확인 ',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                    color: nowColor,
+                                    fontFamily: "Pretendard",
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 16),
+                              ),
+                            ),
+                          )
+                        : Expanded(
+                            flex: 1,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Color(0xffEBEBEB),
+                                borderRadius: BorderRadius.circular(8.0),
+                              ),
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  primary: Color(0xffEBEBEB),
+                                  elevation: 0,
+                                ),
+                                onPressed: () {
+                                  if (_doubleCheck == 0) {
+                                    PhoneAuthCredential phoneAuthCredential =
+                                        PhoneAuthProvider.credential(
+                                            verificationId: verificationId,
+                                            smsCode: _otpCon.text);
+                                    signInWithPhoneAuthCredential(
+                                        phoneAuthCredential);
+                                  } else {
+                                    print('2');
+                                  }
+                                  setState(() {});
+                                },
+                                child: Text(
+                                  '인증번호\n확인 ',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                      color: Color(0xff3A8EFF),
+                                      fontFamily: "Pretendard",
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 16),
+                                ),
+                              ),
+                            ),
+                          )
+                  ],
+                ),
+                SizedBox(
+                  height: 7,
+                ),
+                _phoneAuth == true
+                    ? Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                          Text(
-                            '확인하기',
-                            style: f16w400,
+                          Container(
+                            child: Text(
+                              '인증에 성공하였습니다.',
+                              style: f16w500,
+                            ),
                           ),
-                          SizedBox(
-                            width: 8,
-                          ),
-                          SvgPicture.asset('assets/arrow.svg')
                         ],
-                      ))
-                ],
-              ),
-              Row(
-                children: [
-                  privatePolicyCheck == false
-                      ? GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () {
-                            setState(() {
-                              privatePolicyCheck = true;
-                            });
-                          },
-                          child: SvgPicture.asset('assets/notcheckBox.svg'),
-                        )
-                      : GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () {
-                            setState(() {
-                              privatePolicyCheck = false;
-                            });
-                          },
-                          child: SvgPicture.asset('assets/checkBox.svg'),
-                        ),
-                  SizedBox(
-                    width: 10,
-                  ),
-                  Text(
-                    '개인정보 처리방침',
-                    style: TextStyle(
-                        fontFamily: 'Pretendard',
-                        fontSize: 16,
-                        fontWeight: FontWeight.w400),
-                  ),
-                  Spacer(),
-                  TextButton(
-                      onPressed: () {
-                        Get.toNamed(PrivatePolicy.id);
-                      },
-                      child: Row(
+                      )
+                    : _otpCon.text == ''
+                        ? Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Text(
+                                '',
+                                style: f16w500,
+                              ),
+                            ],
+                          )
+                        : Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              Text(
+                                '인증에 실패했습니다.',
+                                style: f16w500,
+                              ),
+                            ],
+                          ),
+                const SizedBox(
+                  height: 16,
+                ),
+                TextFormFields(
+                  controller: _nameCon,
+                  onChanged: (v) {
+                    us.name.value = _nameCon.text.trim();
+                  },
+                  obscureText: true,
+                  hintText: '이름',
+                  surffixIcon: '0',
+                  keyboardType: TextInputType.text,
+                ),
+                const SizedBox(
+                  height: 16,
+                ),
+                TextFormFields(
+                  controller: _birthCon,
+                  onChanged: (v) {
+                    us.year.value = _birthCon.text.split('/')[0];
+                    us.month.value = _birthCon.text.split('/')[1];
+                    us.day.value = _birthCon.text.split('/')[2];
+                  },
+                  inputFormatters: [
+                    LengthLimitingTextInputFormatter(10),
+                    FilteringTextInputFormatter.digitsOnly,
+                    maskFormatter2
+                  ],
+                  obscureText: true,
+                  hintText: '생년월일',
+                  surffixIcon: "0",
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(
+                  height: 16,
+                ),
+                Row(
+                  children: [
+                    GetPlatform.isWeb
+                        ? SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.05,
+                            width: MediaQuery.of(context).size.width * 0.3,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  typeCheck = false;
+                                  us.userType.value = '학생';
+                                  print('${us.userType.value}');
+                                });
+                              },
+                              style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.white,
+                                  elevation: 0,
+                                  side: BorderSide(
+                                      width: 1,
+                                      color: typeCheck
+                                          ? Colors.white
+                                          : Color(0xff3A8EFF))),
+                              child: Text('학생으로 가입',
+                                  style: us.userType.value == '학생'
+                                      ? f18w700
+                                      : f18w500),
+                            ),
+                          )
+                        : SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.05,
+                            width: MediaQuery.of(context).size.width * 0.45,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  typeCheck = false;
+                                  us.userType.value = '학생';
+                                  print('${us.userType.value}');
+                                });
+                              },
+                              style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.white,
+                                  elevation: 0,
+                                  side: BorderSide(
+                                      width: 1,
+                                      color: typeCheck
+                                          ? Colors.white
+                                          : Color(0xff3A8EFF))),
+                              child: Text(
+                                '학생으로 가입',
+                                style: TextStyle(color: Colors.black),
+                              ),
+                            ),
+                          ),
+                    const SizedBox(
+                      width: 10,
+                    ),
+                    GetPlatform.isWeb
+                        ? SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.05,
+                            width: MediaQuery.of(context).size.width * 0.3,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  typeCheck = true;
+                                  us.userType.value = '선생님';
+                                  print('${us.userType.value}');
+                                });
+                              },
+                              style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.white,
+                                  elevation: 0,
+                                  side: BorderSide(
+                                      width: 1,
+                                      color: typeCheck
+                                          ? Color(0xff3A8EFF)
+                                          : Colors.white)),
+                              child: Text(
+                                '선생님으로 가입',
+                                style: us.userType.value == '선생님'
+                                    ? f18w700
+                                    : f18w500,
+                              ),
+                            ),
+                          )
+                        : Expanded(
+                            child: SizedBox(
+                              height: MediaQuery.of(context).size.height * 0.05,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  setState(() {
+                                    typeCheck = true;
+                                    us.userType.value = '선생님';
+                                    print('${us.userType.value}');
+                                  });
+                                },
+                                style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.white,
+                                    elevation: 0,
+                                    side: BorderSide(
+                                        width: 1,
+                                        color: typeCheck
+                                            ? Color(0xff3A8EFF)
+                                            : Colors.white)),
+                                child: Text(
+                                  '선생님으로 가입',
+                                  style: TextStyle(color: Colors.black),
+                                ),
+                              ),
+                            ),
+                          ),
+                  ],
+                ),
+                const SizedBox(
+                  height: 12,
+                ),
+                GetPlatform.isWeb
+                    ? Row(
                         children: [
-                          Text(
-                            '확인하기',
-                            style: f16w400,
+                          policyCheck == false
+                              ? GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onTap: () {
+                                    print('이용약관 처리');
+                                    setState(() {
+                                      policyCheck = true;
+                                    });
+                                  },
+                                  child: SvgPicture.asset(
+                                      'assets/notcheckBox.svg'),
+                                )
+                              : GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onTap: () {
+                                    print('이용약관 처리');
+                                    setState(() {
+                                      policyCheck = false;
+                                    });
+                                  },
+                                  child:
+                                      SvgPicture.asset('assets/checkBox.svg'),
+                                ),
+                          const SizedBox(
+                            width: 10,
                           ),
-                          SizedBox(
-                            width: 8,
+                          Text('이용약관', style: f16w400),
+                          const SizedBox(
+                            width: 10,
                           ),
-                          SvgPicture.asset('assets/arrow.svg')
+                          TextButton(
+                              onPressed: () async {
+                                showComponentDialog(context, '이용약관을 확인하시겠습니까?',
+                                    () {
+                                  Get.back();
+
+                                  html.window
+                                      .open('https://www.naver.com', 'naver');
+                                });
+                              },
+                              child: Row(
+                                children: [
+                                  Text(
+                                    '확인하기',
+                                    style: f16w400,
+                                  ),
+                                  SizedBox(
+                                    width: 8,
+                                  ),
+                                  SvgPicture.asset('assets/arrow.svg')
+                                ],
+                              ))
                         ],
-                      ))
-                ],
-              ),
-            ],
+                      )
+                    : Row(
+                        children: [
+                          policyCheck == false
+                              ? GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onTap: () {
+                                    print('이용약관 처리');
+                                    setState(() {
+                                      policyCheck = true;
+                                    });
+                                  },
+                                  child: SvgPicture.asset(
+                                      'assets/notcheckBox.svg'),
+                                )
+                              : GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onTap: () {
+                                    print('이용약관 처리');
+                                    setState(() {
+                                      policyCheck = false;
+                                    });
+                                  },
+                                  child:
+                                      SvgPicture.asset('assets/checkBox.svg'),
+                                ),
+                          SizedBox(
+                            width: 10,
+                          ),
+                          Text('이용약관', style: f16w400),
+                          Spacer(),
+                          TextButton(
+                              onPressed: () {
+                                Get.toNamed(PolicyPage.id);
+                              },
+                              child: Row(
+                                children: [
+                                  Text(
+                                    '확인하기',
+                                    style: f16w400,
+                                  ),
+                                  SizedBox(
+                                    width: 8,
+                                  ),
+                                  SvgPicture.asset('assets/arrow.svg')
+                                ],
+                              ))
+                        ],
+                      ),
+                GetPlatform.isWeb
+                    ? Row(
+                        children: [
+                          policyCheck == false
+                              ? GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onTap: () {
+                                    print('이용약관 처리');
+                                    setState(() {
+                                      policyCheck = true;
+                                    });
+                                  },
+                                  child: SvgPicture.asset(
+                                      'assets/notcheckBox.svg'),
+                                )
+                              : GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onTap: () {
+                                    print('이용약관 처리');
+                                    setState(() {
+                                      policyCheck = false;
+                                    });
+                                  },
+                                  child:
+                                      SvgPicture.asset('assets/checkBox.svg'),
+                                ),
+                          const SizedBox(
+                            width: 10,
+                          ),
+                          Text('개인정보 처리방침', style: f16w400),
+                          const SizedBox(
+                            width: 10,
+                          ),
+                          TextButton(
+                              onPressed: () async {
+                                showComponentDialog(
+                                    context, '개인정보 처리방침을 확인하시겠습니까?', () {
+                                  Get.back();
+
+                                  html.window
+                                      .open('https://www.daum.net', 'daum');
+                                });
+                              },
+                              child: Row(
+                                children: [
+                                  Text(
+                                    '확인하기',
+                                    style: f16w400,
+                                  ),
+                                  SizedBox(
+                                    width: 8,
+                                  ),
+                                  SvgPicture.asset('assets/arrow.svg')
+                                ],
+                              ))
+                        ],
+                      )
+                    : Row(
+                        children: [
+                          privatePolicyCheck == false
+                              ? GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onTap: () {
+                                    setState(() {
+                                      privatePolicyCheck = true;
+                                    });
+                                  },
+                                  child: SvgPicture.asset(
+                                      'assets/notcheckBox.svg'),
+                                )
+                              : GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onTap: () {
+                                    setState(() {
+                                      privatePolicyCheck = false;
+                                    });
+                                  },
+                                  child:
+                                      SvgPicture.asset('assets/checkBox.svg'),
+                                ),
+                          SizedBox(
+                            width: 10,
+                          ),
+                          Text(
+                            '개인정보 처리방침',
+                            style: TextStyle(
+                                fontFamily: 'Pretendard',
+                                fontSize: 16,
+                                fontWeight: FontWeight.w400),
+                          ),
+                          Spacer(),
+                          TextButton(
+                              onPressed: () {
+                                Get.toNamed(PrivatePolicy.id);
+                              },
+                              child: Row(
+                                children: [
+                                  Text(
+                                    '확인하기',
+                                    style: f16w400,
+                                  ),
+                                  SizedBox(
+                                    width: 8,
+                                  ),
+                                  SvgPicture.asset('assets/arrow.svg')
+                                ],
+                              ))
+                        ],
+                      ),
+
+                const SizedBox(
+                  height: 120,
+                ),
+                GetPlatform.isWeb
+                    ? Row(
+                        children: [
+                          Footer(),
+                        ],
+                      )
+                    : Container(),
+                const SizedBox(
+                  height: 20,
+                ),
+              ],
+            ),
           ),
         ),
         bottomNavigationBar: GestureDetector(
@@ -639,77 +950,39 @@ class _RegisterMainScreenState extends State<RegisterMainScreen>
                 _birthCon.text.trim().isEmpty == true ||
                 policyCheck == false ||
                 privatePolicyCheck == false) {
-              showDialog(
-                  context: context,
-                  builder: (BuildContext context) => AlertDialog(
-                        content: Text('모든 칸에 입력해주세요'),
-                        actions: [
-                          ElevatedButton(
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                              child: Text('네'))
-                        ],
-                      ));
+              showOnlyConfirmDialog(context, '필수항목들을 입력해주세요');
             } else {
               if (idCheck == false) {
-                showDialog(
-                    context: context,
-                    builder: (BuildContext context) => AlertDialog(
-                          content: Text('아이디 중복체크를 해주세요'),
-                          actions: [
-                            ElevatedButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                                child: Text('네'))
-                          ],
-                        ));
+                showOnlyConfirmDialog(context, '아이디 중복체크를 확인해 주세요');
               } else if (_phoneAuth == false) {
-                showDialog(
-                    context: context,
-                    builder: (BuildContext context) => AlertDialog(
-                          content: Text('인증번호 확인을 해주세요'),
-                          actions: [
-                            ElevatedButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                                child: Text('네'))
-                          ],
-                        ));
+                showConfirmTapDialog(context, '인증번호를 확인해 주세요', () {
+                  Navigator.of(context).pop();
+                });
               } else {
-                if(typeCheck==false){
-                  us.userType.value='학생';
+                if (typeCheck == false) {
+                  us.userType.value = '학생';
                 }
                 us.addUser(
-                    us.id.value,
-                    us.pw.value,
-                    us.number.value,
-                    us.name.value,
-                    us.year.value,
-                    us.month.value,
-                    us.day.value,
-                    us.userType.value);
-                showDialog(
-                    context: context,
-                    builder: (BuildContext context) => AlertDialog(
-                          content: Text('회원가입이 완료되었습니다.'),
-                          actions: [
-                            ElevatedButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                  Get.to(() => LoginMainScreen());
-                                },
-                                child: Text('네'))
-                          ],
-                        ));
+                  us.id.value,
+                  us.pw.value,
+                  us.number.value,
+                  us.name.value,
+                  us.year.value,
+                  us.month.value,
+                  us.day.value,
+                  us.userType.value,
+                );
+                showConfirmTapDialog(context, '회원가입이 완료되었습니다.', () {
+                  Navigator.of(context).pop();
+                  Get.offAll(() => LoginMainScreen());
+                });
               }
             }
-            ;
           },
           child: SizedBox(
-            height: MediaQuery.of(context).size.height * 0.1,
+            height: GetPlatform.isWeb
+                ? Get.height * 0.06
+                : MediaQuery.of(context).size.height * 0.1,
             child: Container(
               decoration: BoxDecoration(color: Color(0xff270BD3)),
               child: Row(
@@ -735,27 +1008,28 @@ class _RegisterMainScreenState extends State<RegisterMainScreen>
   //휴대폰 인증 확인
   void signInWithPhoneAuthCredential(
       PhoneAuthCredential phoneAuthCredential) async {
+    print('test111');
     try {
+      print('2');
       final authCredential =
           await _auth.signInWithCredential(phoneAuthCredential);
-
       if (authCredential.user != null) {
         print('인공입니다');
         setState(() {
           _authOk = true;
           _phoneAuth = true;
           _isConfirm = true;
+          showOnlyConfirmDialog(context, "인증이 완료되었습니다.");
           print("인증완료 및 로그인성공 _auth ok 는 true");
         });
+        print('3');
         _doubleCheck = 1;
         await _auth.currentUser!.delete();
         print("auth정보삭제");
         _auth.signOut();
         print("phone 로그인된것 로그아웃");
-
         // cancelTimer();
         print('인증번호 일치');
-
         //     CollectionReference ref = FirebaseFirestore.instance.collection('fcm');
         //     QuerySnapshot snapshot = await ref.where('1', isEqualTo: _otpCon.text).get();
         //     final allData = snapshot.docs.map((doc) => {doc.data()}).toList();
@@ -771,9 +1045,8 @@ class _RegisterMainScreenState extends State<RegisterMainScreen>
       setState(() {
         _authOk = false;
       });
-      print('인증번호 일치하지 않습니다');
-      print('실패');
-      print('Error Log Phone Auth : ');
+      showOnlyConfirmDialog(context, "인증번호가 일치하지 않습니다.");
+      print('Error Log Phone Auth : ${e}');
     }
   }
 

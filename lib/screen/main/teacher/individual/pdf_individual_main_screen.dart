@@ -16,6 +16,7 @@ import '../../../../provider/answer_state.dart';
 import '../../../../provider/user_state.dart';
 import '../../../../util/colors.dart';
 import '../../../../util/font.dart';
+import '../../../../util/font.dart';
 import '../../../../util/loading.dart';
 import '../../../login/login_main_screen.dart';
 import 'pdf_upload_individual_screen.dart';
@@ -251,7 +252,74 @@ class _PdfIndMainScreenState extends State<PdfIndMainScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Container(
+                        widget.edit=='true'
+                            ?Container(
+                            decoration: BoxDecoration(
+                              borderRadius:
+                              BorderRadius.all(Radius.circular(8.0)),
+                              color: testCountColor,
+                            ),
+                            width: Get.width * 0.6,
+                            child: TextFormField(
+                              controller: _testCountController,
+                              style: f16w400,
+                              textAlign: TextAlign.center,
+                              textAlignVertical: TextAlignVertical.center,
+                              decoration: InputDecoration(
+                                border: InputBorder.none,
+                                prefixIcon: InkWell(
+                                  onTap: () {
+
+                                  },
+                                  child: Material(
+                                    elevation: 0.0,
+                                    color: textFormColor,
+                                    shadowColor: textFormColor,
+                                    borderRadius: BorderRadius.only(
+                                      topLeft: Radius.circular(8.0),
+                                      bottomLeft: Radius.circular(8.0),
+                                    ),
+                                    child: Container(
+                                      width: 40,
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 18, vertical: 14),
+                                      child: SvgPicture.asset(
+                                        'assets/icon/minus.svg',
+                                        height: 20,
+                                        width: 20,
+                                        color: teacherColor,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                suffixIcon: InkWell(
+                                  onTap: () {
+                                  },
+                                  child: Material(
+                                    elevation: 0.0,
+                                    color: textFormColor,
+                                    shadowColor: textFormColor,
+                                    borderRadius: BorderRadius.only(
+                                      topRight: Radius.circular(8.0),
+                                      bottomRight: Radius.circular(8.0),
+                                    ),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 18, vertical: 14),
+                                      child: SvgPicture.asset(
+                                        'assets/icon/plus.svg',
+                                        height: 20,
+                                        width: 20,
+                                        color: teacherColor,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                hintText: '20',
+                                hintStyle: f16w400grey8,
+                              ),
+                            ))
+                        :Container(
                             decoration: BoxDecoration(
                               borderRadius:
                                   BorderRadius.all(Radius.circular(8.0)),
@@ -471,7 +539,84 @@ class _PdfIndMainScreenState extends State<PdfIndMainScreen> {
                         shrinkWrap: true,
                         physics: const ClampingScrollPhysics(),
                         itemBuilder: (c, idx) {
-                          return GestureDetector(
+                          return widget.edit=='true'?
+                          GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: () {
+
+                            },
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '문항 ${idx + 1}.',
+                                  style: f18w700,
+                                ),
+                                const SizedBox(
+                                  height: 20,
+                                ),
+                                Text(
+                                  as.individualFile[idx] != ''
+                                      ? '제목(파일첨부)'
+                                      : '제목',
+                                  style: f18w400,
+                                ),
+                                const SizedBox(
+                                  height: 10,
+                                ),
+                                Container(
+                                  width: Get.width,
+                                  padding: ph24v12,
+                                  decoration: BoxDecoration(
+                                    color: Color(0xffEBEBEB),
+                                    borderRadius: BorderRadius.circular(7),
+                                  ),
+                                  child: Text(
+                                    as.individualTitle[idx] == ''
+                                        ? '문제를 입력해주세요'
+                                        ''
+                                        : '${as.individualTitle[idx]}',
+                                    style: f16w400,
+                                  ),
+                                ),
+                                const SizedBox(
+                                  height: 16,
+                                ),
+                                Row(
+                                  children: [
+                                    Text(
+                                      '답안 :',
+                                      style: f18w400,
+                                    ),
+                                    const SizedBox(
+                                      width: 10,
+                                    ),
+                                    Text(
+                                      as.essayList[idx] != ''
+                                          ? '${as.essayList[idx]}'
+                                          : as.choiceList[idx] == ''
+                                          ? '답을 입력해주세요'
+                                          : '${as.choiceList[idx]}',
+                                      style: f18w700,
+                                    ),
+                                    // Obx(() =>Text('${as.essayList[idx]}',style: f18w700,)),
+                                    // as.essayList[idx] == 'true' ? Text('주관식',style: f18w700,):  Text(
+                                    //   '1',
+                                    //   style: f18w700,
+                                    // ),
+                                  ],
+                                ),
+                                const SizedBox(
+                                  height: 10,
+                                ),
+                                Divider(),
+                                const SizedBox(
+                                  height: 10,
+                                ),
+                              ],
+                            ),
+                          ):
+                            GestureDetector(
                             behavior: HitTestBehavior.opaque,
                             onTap: () {
                               print('as list : ${as.essayList}');

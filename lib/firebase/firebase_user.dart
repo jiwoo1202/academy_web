@@ -72,3 +72,16 @@ Future<void> firebaseUserCreate() async {
     print(e);
   }
 }
+// 비밀번호 찾기
+Future<void> findPassWord(String phoneNumber)async{
+  final us = Get.put(UserState());
+  try{
+    CollectionReference ref = FirebaseFirestore.instance.collection('user');
+    QuerySnapshot snapshot = await ref.where('phoneNumber', isEqualTo: phoneNumber).get();
+    final allData = snapshot.docs.map((doc) => doc.data()).toList();
+    List a = allData;
+    us.findPassWord.value = a[0]['pw'];
+  }catch(e){
+    print(e);
+  }
+}

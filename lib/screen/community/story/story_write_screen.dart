@@ -6,6 +6,7 @@ import 'package:academy/util/padding.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:image_picker/image_picker.dart';
@@ -75,9 +76,9 @@ class _StoryWriteScreenState extends State<StoryWriteScreen> {
           ///사진추가
           _editImg = js.selectJobTile[0]['images'];
           if (js.jobList.length != 0) {
-            for (int i = 0; i < js.jobList.length; i++) {
+            for (int i = 0; i < _editImg.length; i++) {
               _firebaseImg.add(
-                  'https://firebasestorage.googleapis.com/v0/b/academy-957f7.appspot.com/o/picture%2F${us.userList[0].phoneNumber}%2F${js.jobDocId.value}%2F${js.jobList[i]}?alt=media');
+                  'https://firebasestorage.googleapis.com/v0/b/academy-957f7.appspot.com/o/picture%2F${us.userList[0].phoneNumber}%2F${js.jobDocId.value}%2F${_editImg[i]}?alt=media');
             }
           }
           _dropdown = '${js.selectJobTile[0]['ageValue']}';
@@ -525,7 +526,6 @@ class _StoryWriteScreenState extends State<StoryWriteScreen> {
                                 flex: 2,
                                 child: TextFormField(
                                   controller: _ageCon,
-                                  keyboardType: TextInputType.number,
                                   decoration: InputDecoration(
                                     isDense: true,
                                     filled: true,
@@ -606,7 +606,6 @@ class _StoryWriteScreenState extends State<StoryWriteScreen> {
                                 child: TextFormField(
                                   enabled: !_pay,
                                   controller: _moneyCon,
-                                  keyboardType: TextInputType.number,
                                   decoration: InputDecoration(
                                     isDense: true,
                                     filled: true,
@@ -849,7 +848,6 @@ class _StoryWriteScreenState extends State<StoryWriteScreen> {
       'images' : [],
       'jobIs' : true,
       'createDate' : '${DateTime.now()}',
-
     }).then((doc) async {
       DocumentReference userDocRef =
       FirebaseFirestore.instance.collection('jobHunting').doc(doc.id);
@@ -897,6 +895,7 @@ class _StoryWriteScreenState extends State<StoryWriteScreen> {
             showOnlyConfirmDialog(context, '사진은 10장까지 올리실 수 있습니다');
           } else {
             _imageFileList!.addAll(selectedImages);
+            print('_imageFileList: ${_imageFileList!.length}');
           }
         }
         setState(() {});
@@ -920,15 +919,16 @@ class _StoryWriteScreenState extends State<StoryWriteScreen> {
             context: context,
           )
         : Container();
-    DocumentReference userDocRef =
-        FirebaseFirestore.instance.collection(category).doc(docId);
+    DocumentReference userDocRef = FirebaseFirestore.instance.collection(category).doc(docId);
+    List<String> ls = [];
     for (int i = 0; i < _imageFileList!.length; i++) {
+      ls.add('${DateTime.now()}');
       final firebaseStorageRef = FirebaseStorage.instance
           .ref()
           .child('picture')
           .child('$phoneNumber')
           .child('$docId')
-          .child('${DateTime.now()}');
+          .child(ls[i]);
       final uploadTask = firebaseStorageRef.putFile(
           File(_imageFileList![i].path),
           SettableMetadata(contentType: 'image/png'));
@@ -937,10 +937,20 @@ class _StoryWriteScreenState extends State<StoryWriteScreen> {
     final pathReference = FirebaseStorage.instance.ref().child('picture').child('$phoneNumber').child(docId);
     ListResult nestedResult = await pathReference.listAll();
     nestedResult.items.forEach((element) async {
-      await userDocRef.update({
-        "images": FieldValue.arrayUnion(['${element.name}'])
-      });
+      for(int i=0; i<ls.length; i++) {
+        if('${element.name}' == ls[i]) {
+          await userDocRef.update({
+            "images": FieldValue.arrayUnion(['${element.name}'])
+          });
+        }
+      }
     });
+    // ListResult nestedResult = await pathReference.listAll();
+    // nestedResult.items.forEach((element) async {
+    //   await userDocRef.update({
+    //     "images": FieldValue.arrayUnion(['${element.name}'])
+    //   });
+    // });
 
     setState(() {
       _imageLoading = false;
@@ -956,6 +966,21 @@ class _StoryWriteScreenState extends State<StoryWriteScreen> {
         .doc(collection == 'jobHunting' ? '${js.jobDocId}' : cs.communityList[0]['docId']);
     if (_editImg.length != 0 && _imageFileList!.length == 0) {
       print('1-------------------');
+      collection == 'jobHunting' ? await userRef.update({
+        'title': _titleCon.text,
+        'body': _bodyCon.text,
+        'hasImage': 'true',
+        'images': _editImg,
+        'age' : _ageCon.text,
+        'ageValue' : _dropdown!,
+        'closeH' : _indexTime3,
+        'closeM' : _indexTime4,
+        'gender' : _gender == 0 ? '남자' : _gender == 1 ? '여자' : '성별 무관',
+        'openH' : _indexTime,
+        'openM' : _indexTime2,
+        'pay' : _pay ? '협의' : _moneyCon.text,
+        'payValue' : _dropdown2!,
+      }) :
       await userRef.update({
         'title': _titleCon.text,
         'body': _bodyCon.text,
@@ -966,15 +991,48 @@ class _StoryWriteScreenState extends State<StoryWriteScreen> {
       print('2-------------------');
       print('_imageFileList: ${_imageFileList!.length}');
       print('_imageFileList22: ${_imageFileList!}');
+      collection == 'jobHunting' ? await userRef.update({
+        'title': _titleCon.text,
+        'body': _bodyCon.text,
+        'hasImage': 'true',
+        'images': [],
+        'age' : _ageCon.text,
+        'ageValue' : _dropdown!,
+        'closeH' : _indexTime3,
+        'closeM' : _indexTime4,
+        'gender' : _gender == 0 ? '남자' : _gender == 1 ? '여자' : '성별 무관',
+        'openH' : _indexTime,
+        'openM' : _indexTime2,
+        'pay' : _pay ? '협의' : _moneyCon.text,
+        'payValue' : _dropdown2!,
+      }) :
       await userRef.update({
         'title': _titleCon.text,
         'body': _bodyCon.text,
         'hasImage': 'true',
+        'images': [],
       });
+      await deleteFolder(path: "picture/${us.userList[0].phoneNumber}/${collection == 'jobHunting' ? '${js.jobDocId}' : cs.communityList[0]['docId']}");
       await uploadFile(collection == 'jobHunting' ? '${js.jobDocId}' : cs.communityList[0]['docId'],
           '${us.userList[0].phoneNumber}', collection);
     } else if (_editImg.length != 0 && _imageFileList!.length != 0) {
       print('3-------------------');
+      print('_editImg: ${_editImg}');
+      collection == 'jobHunting' ? await userRef.update({
+        'title': _titleCon.text,
+        'body': _bodyCon.text,
+        'hasImage': 'true',
+        'images': _editImg,
+        'age' : _ageCon.text,
+        'ageValue' : _dropdown!,
+        'closeH' : _indexTime3,
+        'closeM' : _indexTime4,
+        'gender' : _gender == 0 ? '남자' : _gender == 1 ? '여자' : '성별 무관',
+        'openH' : _indexTime,
+        'openM' : _indexTime2,
+        'pay' : _pay ? '협의' : _moneyCon.text,
+        'payValue' : _dropdown2!,
+      }) :
       await userRef.update({
         'title': _titleCon.text,
         'body': _bodyCon.text,
@@ -985,6 +1043,21 @@ class _StoryWriteScreenState extends State<StoryWriteScreen> {
           '${us.userList[0].phoneNumber}', collection);
     } else if (_editImg.length == 0 && _imageFileList!.length == 0) {
       print('3-------------------');
+      collection == 'jobHunting' ? await userRef.update({
+        'title': _titleCon.text,
+        'body': _bodyCon.text,
+        'hasImage': 'false',
+        'images': [],
+        'age' : _ageCon.text,
+        'ageValue' : _dropdown!,
+        'closeH' : _indexTime3,
+        'closeM' : _indexTime4,
+        'gender' : _gender == 0 ? '남자' : _gender == 1 ? '여자' : '성별 무관',
+        'openH' : _indexTime,
+        'openM' : _indexTime2,
+        'pay' : _pay ? '협의' : _moneyCon.text,
+        'payValue' : _dropdown2!,
+      }) :
       await userRef.update({
         'title': _titleCon.text,
         'body': _bodyCon.text,

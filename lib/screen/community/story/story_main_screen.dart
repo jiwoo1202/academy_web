@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:academy/screen/community/story/story_write_screen.dart';
 import 'package:academy/util/loading.dart';
 import 'package:carousel_slider/carousel_slider.dart';
@@ -7,12 +9,14 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../components/community/community_body.dart';
+import '../../../firebase/firebase_user.dart';
 import '../../../provider/community_state.dart';
 import '../../../provider/user_state.dart';
 import '../../../util/colors.dart';
 import '../../../util/font.dart';
 import '../../../util/padding.dart';
 import 'story_detail_screen.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 class StoryMainScreen extends StatefulWidget {
   static final String id = '/story_main';
@@ -59,6 +63,7 @@ class _StoryMainScreenState extends State<StoryMainScreen> {
   @override
   Widget build(BuildContext context) {
     final cs = Get.put(CommunityState());
+    final us = Get.put(UserState());
     return RefreshIndicator(
       key: _refreshIndicatorKey,
       triggerMode: RefreshIndicatorTriggerMode.anywhere,
@@ -68,154 +73,434 @@ class _StoryMainScreenState extends State<StoryMainScreen> {
       child: _isLoading
           ? LoadingBodyScreen()
           : CommunityBody(
-              paddingSize: 0,
+              paddingSize: kIsWeb ? 40 : 0,
               body: Transform.translate(
                 offset: Offset(0, 0),
-                child: ListView.builder(
-                    controller: scrollController,
-                    physics: const ClampingScrollPhysics(),
-                    itemCount: _communityList.length,
-                    shrinkWrap: true,
-                    itemBuilder: (context, idx) {
-                      return blockList.contains(_communityList[idx]['docId'])
-                          ? Container()
-                          : GestureDetector(
-                              behavior: HitTestBehavior.opaque,
-                              onTap: () async {
-                                Get.to(() => StoryDetailScreen(
-                                      docId: _communityList[idx]['docId'],
-                                      id1: _communityList[idx]['id'],
-                                      refreshIndicatorKey: _refreshIndicatorKey,
-                                      name: _communityList[idx]['name'],
-                                    ))!.then((value) => {
-                                    _refreshIndicatorKey.currentState?.show()
-                                });
-                              },
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const SizedBox(height: 8,),
-                                  _communityList[idx]['hasImage'] == 'false' ? Container() :
-                                  Padding(
-                                    padding: ph24,
-                                    child: CarouselSlider(
-                                      items: [
-                                        'https://firebasestorage.googleapis.com/v0/b/academy-957f7.appspot.com/'
-                                            'o/picture%2F${_communityList[idx]['id']}%2F${_communityList[idx]['docId']}'
-                                            '%2F${_communityList[idx]['images'][0]}?alt=media'
-                                      ]
-                                          .map((item) => ClipRRect(
-                                        borderRadius:
-                                        BorderRadius.all(Radius.circular(0.0)),
-                                        child: InkWell(
-                                            onTap: () async {
-                                              Get.to(() => StoryDetailScreen(
-                                                docId: _communityList[idx]['docId'],
-                                                id1: _communityList[idx]['id'],
-                                                refreshIndicatorKey: _refreshIndicatorKey,
-                                                name: _communityList[idx]['name'],
-                                              ))!.then((value) => {
-                                                _refreshIndicatorKey.currentState?.show()
-                                              });
-                                            },
-                                            child: ExtendedImage.network(
-                                              item,
-                                              fit: BoxFit.cover,
-                                              cache: true,
-                                              enableLoadState: false,
-                                            )),
-                                      )).toList(),
-                                      carouselController: carouselController,
-                                      options: CarouselOptions(
-                                        enableInfiniteScroll: false,
-                                        autoPlay: false,
-                                        padEnds: false,
-                                        enlargeCenterPage: false,
-                                        disableCenter: true,
-                                        height: Get.height * 0.3,
-                                        viewportFraction: 1,
+                child: kIsWeb
+                    ? SingleChildScrollView(
+                        physics: const ClampingScrollPhysics(),
+                        child: GridView.builder(
+                            controller: scrollController,
+                            shrinkWrap: true,
+                            gridDelegate:
+                                SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: !context.isLargeTablet ? 2 : 3,
+                              childAspectRatio: (1 / 1),
+                              mainAxisSpacing: 8,
+                              crossAxisSpacing: 8,
+                            ),
+                            itemCount: _communityList.length,
+                            itemBuilder: (context, idx) => us
+                                    .userList[0].isBanned!
+                                    .contains(_communityList[idx]['id'])
+                                ? Container()
+                                : Container(
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: const Color(0xffE9E9E9),
+                                      ),
+                                      color: Colors.white,
+                                    ),
+                                    child: GestureDetector(
+                                      behavior: HitTestBehavior.opaque,
+                                      onTap: () async {
+                                        print(
+                                            'Get.width * 0.2: ${Get.width * 0.2}');
+                                        Get.to(() => StoryDetailScreen(
+                                                  docId: _communityList[idx]
+                                                      ['docId'],
+                                                  id1: _communityList[idx]
+                                                      ['id'],
+                                                  refreshIndicatorKey:
+                                                      _refreshIndicatorKey,
+                                                  name: _communityList[idx]
+                                                      ['name'],
+                                                ))!
+                                            .then((value) => {
+                                                  _refreshIndicatorKey
+                                                      .currentState
+                                                      ?.show()
+                                                });
+                                      },
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          const SizedBox(
+                                            height: 8,
+                                          ),
+                                          _communityList[idx]['hasImage'] ==
+                                                  'false'
+                                              ? Container(
+                                                  width: Get.width * 0.3,
+                                                  height: Get.width * 0.2,
+                                                  padding: ph24,
+                                                  child: Image.asset(
+                                                    'assets/icon/noImg.png',
+                                                    fit: BoxFit.cover,
+                                                  ))
+                                              : Container(
+                                                  width: Get.width * 0.3,
+                                                  height: Get.width * 0.2,
+                                                  padding: ph24,
+                                                  child: CarouselSlider(
+                                                    items: [
+                                                      'https://firebasestorage.googleapis.com/v0/b/academy-957f7.appspot.com/'
+                                                          'o/picture%2F${_communityList[idx]['id']}%2F${_communityList[idx]['docId']}'
+                                                          '%2F${_communityList[idx]['images'][0]}?alt=media'
+                                                    ]
+                                                        .map(
+                                                            (item) => ClipRRect(
+                                                                  borderRadius:
+                                                                      BorderRadius.all(
+                                                                          Radius.circular(
+                                                                              0.0)),
+                                                                  child: InkWell(
+                                                                      onTap: () async {
+                                                                        Get.to(() =>
+                                                                                StoryDetailScreen(
+                                                                                  docId: _communityList[idx]['docId'],
+                                                                                  id1: _communityList[idx]['id'],
+                                                                                  refreshIndicatorKey: _refreshIndicatorKey,
+                                                                                  name: _communityList[idx]['name'],
+                                                                                ))!
+                                                                            .then((value) =>
+                                                                                {
+                                                                                  _refreshIndicatorKey.currentState?.show()
+                                                                                });
+                                                                      },
+                                                                      child: ExtendedImage.network(
+                                                                        item,
+                                                                        fit: BoxFit
+                                                                            .cover,
+                                                                        cache:
+                                                                            true,
+                                                                        enableLoadState:
+                                                                            false,
+                                                                      )),
+                                                                ))
+                                                        .toList(),
+                                                    carouselController:
+                                                        carouselController,
+                                                    options: CarouselOptions(
+                                                      enableInfiniteScroll:
+                                                          false,
+                                                      autoPlay: false,
+                                                      padEnds: false,
+                                                      enlargeCenterPage: false,
+                                                      disableCenter: true,
+                                                      // height: Get.height * 0.3,
+                                                      viewportFraction: 1,
+                                                    ),
+                                                  ),
+                                                ),
+                                          _communityList[idx]['hasImage'] ==
+                                                  'false'
+                                              ? Container()
+                                              : SizedBox(
+                                                  height: 8,
+                                                ),
+                                          Padding(
+                                            padding: ph24,
+                                            child: Text(
+                                              '${_communityList[idx]['title']}',
+                                              style: Get.width * 0.2 >= 218
+                                                  ? f18w400el
+                                                  : (Get.width * 0.2 <= 204 &&
+                                                          Get.width * 0.2 > 171)
+                                                      ? f12w400el
+                                                      : (Get.width * 0.2 <=
+                                                                  171 &&
+                                                              Get.width * 0.2 >=
+                                                                  144)
+                                                          ? f10w400el
+                                                          : f16w400el, //: f14w400el,
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            height: (Get.width * 0.2 <= 171 &&
+                                                    Get.width * 0.2 >= 144)
+                                                ? 0
+                                                : 8,
+                                          ),
+                                          Padding(
+                                            padding: ph24,
+                                            child: Text(
+                                              '${_communityList[idx]['body']}',
+                                              style: Get.width * 0.2 >= 218
+                                                  ? f16w400greyAel
+                                                  : (Get.width * 0.2 <= 204 &&
+                                                          Get.width * 0.2 > 171)
+                                                      ? f10w400greyAel
+                                                      : (Get.width * 0.2 <=
+                                                                  171 &&
+                                                              Get.width * 0.2 >=
+                                                                  144)
+                                                          ? f8w400greyAel
+                                                          : f14w400greyAel, //: f12w400greyAel,
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            height: (Get.width * 0.2 <= 171 &&
+                                                    Get.width * 0.2 >= 144)
+                                                ? 0
+                                                : 8,
+                                          ),
+                                          Padding(
+                                            padding: ph24,
+                                            child: Text(
+                                              int.parse(DateTime.now()
+                                                          .difference(
+                                                              DateTime.parse(
+                                                            '${_communityList[idx]['createDate']}',
+                                                          ))
+                                                          .inMinutes
+                                                          .toString()) <
+                                                      5
+                                                  ? '방금 전'
+                                                  : int.parse(DateTime.now()
+                                                              .difference(
+                                                                  DateTime
+                                                                      .parse(
+                                                                '${_communityList[idx]['createDate']}',
+                                                              ))
+                                                              .inMinutes
+                                                              .toString()) <
+                                                          60
+                                                      ? '${int.parse(DateTime.now().difference(DateTime.parse(
+                                                            '${_communityList[idx]['createDate']}',
+                                                          )).inMinutes.toString())}분 전'
+                                                      : int.parse(DateTime.now()
+                                                                  .difference(
+                                                                      DateTime
+                                                                          .parse(
+                                                                    '${_communityList[idx]['createDate']}',
+                                                                  ))
+                                                                  .inHours
+                                                                  .toString()) <
+                                                              24
+                                                          ? '${int.parse(DateTime.now().difference(DateTime.parse(
+                                                                '${_communityList[idx]['createDate']}',
+                                                              )).inHours.toString())}시간 전'
+                                                          : '${int.parse(DateTime.now().difference(DateTime.parse(
+                                                                '${_communityList[idx]['createDate']}',
+                                                              )).inDays.toString())}일 전',
+                                              style: Get.width * 0.2 >= 218
+                                                  ? f16w400greyA
+                                                  : (Get.width * 0.2 <= 204 &&
+                                                          Get.width * 0.2 > 171)
+                                                      ? f10w400greyA
+                                                      : (Get.width * 0.2 <=
+                                                                  171 &&
+                                                              Get.width * 0.2 >=
+                                                                  144)
+                                                          ? f8w400greyA
+                                                          : f14w400greyA, //: f12w400greyA,
+                                            ),
+                                          ),
+                                          // const SizedBox(
+                                          //   height: 16,
+                                          // ),
+                                          // SizedBox(
+                                          //   width: Get.width,
+                                          //   height: 1,
+                                          //   child: Divider(
+                                          //     color: Colors.black,
+                                          //     thickness: 1,
+                                          //   ),
+                                          // ),
+                                          // const SizedBox(
+                                          //   height: 16,
+                                          // ),
+                                        ],
                                       ),
                                     ),
-                                  ),
-                                  _communityList[idx]['hasImage'] == 'false' ? Container() :
-                                  const SizedBox(height: 8,),
-                                  Padding(
-                                    padding: ph24,
-                                    child: Text(
-                                      '${_communityList[idx]['title']}',
-                                      style: f18w400el,
-                                    ),
-                                  ),
-                                  const SizedBox(
-                                    height: 8,
-                                  ),
-                                  Padding(
-                                    padding: ph24,
-                                    child: Text(
-                                      '${_communityList[idx]['body']}',
-                                      style: f16w400greyAel,
-                                    ),
-                                  ),
-                                  const SizedBox(
-                                    height: 12,
-                                  ),
-                                  Padding(
-                                    padding: ph24,
-                                    child: Text(
-                                      int.parse(DateTime.now()
-                                                  .difference(DateTime.parse(
-                                                    '${_communityList[idx]['createDate']}',
-                                                  ))
-                                                  .inMinutes
-                                                  .toString()) <
-                                              5
-                                          ? '방금 전'
-                                          : int.parse(DateTime.now()
+                                  )),
+                      )
+                    : ListView.builder(
+                        controller: scrollController,
+                        physics: const ClampingScrollPhysics(),
+                        itemCount: _communityList.length,
+                        shrinkWrap: true,
+                        itemBuilder: (context, idx) {
+                          return us.userList[0].isBanned!
+                                  .contains(_communityList[idx]['id'])
+                              ? Container()
+                              : GestureDetector(
+                                  behavior: HitTestBehavior.opaque,
+                                  onTap: () async {
+                                    Get.to(() => StoryDetailScreen(
+                                              docId: _communityList[idx]
+                                                  ['docId'],
+                                              id1: _communityList[idx]['id'],
+                                              refreshIndicatorKey:
+                                                  _refreshIndicatorKey,
+                                              name: _communityList[idx]['name'],
+                                            ))!
+                                        .then((value) => {
+                                              _refreshIndicatorKey.currentState
+                                                  ?.show()
+                                            });
+                                  },
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      const SizedBox(
+                                        height: 8,
+                                      ),
+                                      _communityList[idx]['hasImage'] == 'false'
+                                          ? Container()
+                                          : Container(
+                                              width: Get.width * 0.3,
+                                              padding: ph24,
+                                              child: CarouselSlider(
+                                                items: [
+                                                  'https://firebasestorage.googleapis.com/v0/b/academy-957f7.appspot.com/'
+                                                      'o/picture%2F${_communityList[idx]['id']}%2F${_communityList[idx]['docId']}'
+                                                      '%2F${_communityList[idx]['images'][0]}?alt=media'
+                                                ]
+                                                    .map((item) => ClipRRect(
+                                                          borderRadius:
+                                                              BorderRadius.all(
+                                                                  Radius
+                                                                      .circular(
+                                                                          0.0)),
+                                                          child: InkWell(
+                                                              onTap: () async {
+                                                                Get.to(() =>
+                                                                        StoryDetailScreen(
+                                                                          docId:
+                                                                              _communityList[idx]['docId'],
+                                                                          id1: _communityList[idx]
+                                                                              [
+                                                                              'id'],
+                                                                          refreshIndicatorKey:
+                                                                              _refreshIndicatorKey,
+                                                                          name: _communityList[idx]
+                                                                              [
+                                                                              'name'],
+                                                                        ))!
+                                                                    .then(
+                                                                        (value) =>
+                                                                            {
+                                                                              _refreshIndicatorKey.currentState?.show()
+                                                                            });
+                                                              },
+                                                              child:
+                                                                  ExtendedImage
+                                                                      .network(
+                                                                item,
+                                                                fit: BoxFit
+                                                                    .cover,
+                                                                cache: true,
+                                                                enableLoadState:
+                                                                    false,
+                                                              )),
+                                                        ))
+                                                    .toList(),
+                                                carouselController:
+                                                    carouselController,
+                                                options: CarouselOptions(
+                                                  enableInfiniteScroll: false,
+                                                  autoPlay: false,
+                                                  padEnds: false,
+                                                  enlargeCenterPage: false,
+                                                  disableCenter: true,
+                                                  height: Get.height * 0.3,
+                                                  viewportFraction: 1,
+                                                ),
+                                              ),
+                                            ),
+                                      _communityList[idx]['hasImage'] == 'false'
+                                          ? Container()
+                                          : const SizedBox(
+                                              height: 8,
+                                            ),
+                                      Padding(
+                                        padding: ph24,
+                                        child: Text(
+                                          '${_communityList[idx]['title']}',
+                                          style: f18w400el,
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                        height: 8,
+                                      ),
+                                      Padding(
+                                        padding: ph24,
+                                        child: Text(
+                                          '${_communityList[idx]['body']}',
+                                          style: f16w400greyAel,
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                        height: 12,
+                                      ),
+                                      Padding(
+                                        padding: ph24,
+                                        child: Text(
+                                          int.parse(DateTime.now()
                                                       .difference(
                                                           DateTime.parse(
                                                         '${_communityList[idx]['createDate']}',
                                                       ))
                                                       .inMinutes
                                                       .toString()) <
-                                                  60
-                                              ? '${int.parse(DateTime.now().difference(DateTime.parse(
-                                                    '${_communityList[idx]['createDate']}',
-                                                  )).inMinutes.toString())}분 전'
+                                                  5
+                                              ? '방금 전'
                                               : int.parse(DateTime.now()
                                                           .difference(
                                                               DateTime.parse(
                                                             '${_communityList[idx]['createDate']}',
                                                           ))
-                                                          .inHours
+                                                          .inMinutes
                                                           .toString()) <
-                                                      24
+                                                      60
                                                   ? '${int.parse(DateTime.now().difference(DateTime.parse(
                                                         '${_communityList[idx]['createDate']}',
-                                                      )).inHours.toString())}시간 전'
-                                                  : '${int.parse(DateTime.now().difference(DateTime.parse(
-                                                        '${_communityList[idx]['createDate']}',
-                                                      )).inDays.toString())}일 전',
-                                      style: f16w400greyA,
-                                    ),
+                                                      )).inMinutes.toString())}분 전'
+                                                  : int.parse(DateTime.now()
+                                                              .difference(
+                                                                  DateTime
+                                                                      .parse(
+                                                                '${_communityList[idx]['createDate']}',
+                                                              ))
+                                                              .inHours
+                                                              .toString()) <
+                                                          24
+                                                      ? '${int.parse(DateTime.now().difference(DateTime.parse(
+                                                            '${_communityList[idx]['createDate']}',
+                                                          )).inHours.toString())}시간 전'
+                                                      : '${int.parse(DateTime.now().difference(DateTime.parse(
+                                                            '${_communityList[idx]['createDate']}',
+                                                          )).inDays.toString())}일 전',
+                                          style: f16w400greyA,
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                        height: 16,
+                                      ),
+                                      SizedBox(
+                                        width: Get.width,
+                                        height: 1,
+                                        child: Divider(
+                                          color: Colors.black,
+                                          thickness: 1,
+                                        ),
+                                      ),
+                                      const SizedBox(
+                                        height: 16,
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(
-                                    height: 16,
-                                  ),
-                                  Divider(
-                                    color: cameraBackColor,
-                                    height: 1,
-                                  ),
-                                  const SizedBox(
-                                    height: 16,
-                                  ),
-                                ],
-                              ),
-                            );
-                    }),
+                                );
+                        }),
               ),
               floatingIcon: const Icon(Icons.edit),
               floatingTap: () {
-                Get.to(()=>StoryWriteScreen());
+                Get.toNamed(StoryWriteScreen.id);
               },
             ),
     );
@@ -223,11 +508,13 @@ class _StoryMainScreenState extends State<StoryMainScreen> {
 
   Future<void> _refresh() async {
     Future.delayed(Duration.zero, () async {
+      final us = Get.put(UserState());
       print('refresh------');
       qsStoryList = null;
       // _communityList = [];
       // await storyBlockExceptGet();
       await communityStoryGet();
+      await userGet(us.userList[0].id!, us.userList[0].pw!);
       _isLoading = false;
       setState(() {});
     });
@@ -237,7 +524,9 @@ class _StoryMainScreenState extends State<StoryMainScreen> {
     final us = Get.put(UserState());
     CollectionReference ref2 = FirebaseFirestore.instance.collection('block');
     QuerySnapshot snapshot2 = await ref2
-        .where('blockId', isEqualTo: '${us.userList[0].phoneNumber}') //us.userList[0].phoneNumber
+        .where('blockId',
+            isEqualTo:
+                '${us.userList[0].phoneNumber}') //us.userList[0].phoneNumber
         .where('collectionName', isEqualTo: 'story')
         .where('commentField', isEqualTo: 'false')
         .get();
@@ -245,7 +534,7 @@ class _StoryMainScreenState extends State<StoryMainScreen> {
     print('55555 : ${allData.length}');
     List ls = allData;
     blockList = [];
-    for(int i=0; i<ls.length; i++) {
+    for (int i = 0; i < ls.length; i++) {
       blockList.add(ls[i]['blockDocId']);
     }
 

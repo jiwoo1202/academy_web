@@ -2,6 +2,7 @@ import 'package:academy/components/button/choose_button.dart';
 import 'package:academy/firebase/firebase_test.dart';
 import 'package:academy/provider/answer_state.dart';
 import 'package:academy/screen/main/student/test/test_main_screen.dart';
+import 'package:academy/screen/mypage/mypage_screen.dart';
 import 'package:academy/util/padding.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -12,14 +13,15 @@ import '../../../../util/colors.dart';
 
 import '../../../../util/font.dart';
 import '../../../login/login_main_screen.dart';
+import '../../../mypage/score/score_check_screen.dart';
 import 'test_file.dart';
 
 class TestCheckScreen extends StatefulWidget {
   // final String docId;
   final String? teacherName;
   final String? docId;
-
-  const TestCheckScreen({Key? key, this.teacherName, this.docId})
+  final bool? myPage;
+  const TestCheckScreen({Key? key, this.teacherName, this.docId, this.myPage,})
       : super(key: key);
 
   @override
@@ -64,7 +66,13 @@ class _TestCheckScreenState extends State<TestCheckScreen> {
             color: Color(0xff6f7072),
           ),
           onPressed: () {
-            Get.offAllNamed(BottomNavigator.id);
+            // 나눠서
+            if(widget.myPage==true){
+            Get.back();
+            }
+            else if(widget.myPage==false){
+              Get.offAllNamed(BottomNavigator.id);
+            }
           },
         ),
         actions: [
@@ -78,11 +86,12 @@ class _TestCheckScreenState extends State<TestCheckScreen> {
                     onTap: () async {
                       final url =
                           //
-                          'https://firebasestorage.googleapis.com/v0/b/academy-957f7.appspot.com/o/12345%2F${widget.teacherName}%2F${widget.docId}.pdf?alt=media&token=a8ae0347-fe42-4be2-a837-671b1adbdba6';
+                          'https://firebasestorage.googleapis.com/v0/b/academy-957f7.appspot.com/o/12345%2F${widget.teacherName}%2F${widget.docId}.pdf?alt=media';
                       final file = await PDFApi.loadNetwork(url);
                       Get.back();
                       Get.to(() => TestFilePage(
                             file: file,
+                            myPage:widget.myPage
                           ));
                     })),
           )

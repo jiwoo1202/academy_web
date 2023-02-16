@@ -71,7 +71,7 @@ showOnlyConfirmDialog(BuildContext context, String title) {
           ),
           contentPadding: const EdgeInsets.only(top: 35,bottom: 35),
           content: Container(
-            width: Get.width * 0.9,
+            width: GetPlatform.isWeb ? Get.width * 0.5 : Get.width * 0.9,
             child: Text('${title}',
                 textAlign: TextAlign.center,
                 style: f16w700),
@@ -80,6 +80,7 @@ showOnlyConfirmDialog(BuildContext context, String title) {
             Divider(
               height: 1,
             ),
+            SizedBox(height: GetPlatform.isWeb ?8 : 0,),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -597,7 +598,7 @@ showComponentDialog(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: MediaQuery.of(context).size.width * 0.9,
+                width: GetPlatform.isWeb ? MediaQuery.of(context).size.width * 0.5 :  MediaQuery.of(context).size.width * 0.9,
                 child: Text('${title}',
                     textAlign: TextAlign.center,
                     style: f16w700),
@@ -606,6 +607,7 @@ showComponentDialog(
           ),
           actions: [
             Divider(height: 0,),
+            SizedBox(height: GetPlatform.isWeb ? 8 : 0,),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [

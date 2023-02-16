@@ -26,7 +26,7 @@ class AnswerState extends GetxController{
   final getDate = ''.obs; //
 
 
-  // individual
+// individual
   final hasFile = false.obs;
   final indEditList = [].obs;
   final essayList = [].obs;
@@ -37,4 +37,12 @@ class AnswerState extends GetxController{
   final individualFilePath = [].obs;
   final editIndividual = [].obs;
   final editIndividualImage = [].obs;
+  final tmpidx = [].obs;
+  //total
+ final essayList1 = [].obs;
+ final choiceList1 = [].obs;
+
+
+
+
 }

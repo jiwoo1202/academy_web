@@ -7,6 +7,7 @@ class JobState extends GetxController{
   final jobHasImage = ''.obs;
   final jobbody = ''.obs;
   final jobTeacher = ''.obs;
+  final jobCreateDate = ''.obs;
   final realAnswer = [].obs;
   final commentId = [].obs;
   final commentBody = [].obs;

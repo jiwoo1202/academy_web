@@ -11,7 +11,6 @@ import '../../util/font.dart';
 
 
 
-
 class PolicyPage extends StatefulWidget {
   static final String id = '/policy';
   const PolicyPage({Key? key}) : super(key: key);
