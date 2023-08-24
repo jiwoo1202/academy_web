@@ -1,12 +1,13 @@
 import 'package:academy/provider/job_state.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:extended_image/extended_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import '../../util/click_full_image.dart';
 import '../../util/colors.dart';
-import '../../../util/font.dart';
+import '../../util/font/font.dart';
 import '../../util/padding.dart';
 
 class CommunityDetail extends StatefulWidget {
@@ -19,10 +20,12 @@ class CommunityDetail extends StatefulWidget {
   final String? commentId;
   final String? commentBody;
   final String? docId;
+  final String? admin;
 
   final int anonymousCount;
   final int commentCount;
 
+  final bool? qna;
   final bool anonymous;
   final bool? isMine;
 
@@ -58,7 +61,9 @@ class CommunityDetail extends StatefulWidget {
       this.onTap3,
       this.docId,
       this.refreshIndicatorKey,
-      this.onTap4})
+      this.onTap4,
+      this.qna,
+      this.admin})
       : super(key: key);
 
   @override
@@ -70,7 +75,7 @@ class _CommunityDetailState extends State<CommunityDetail> {
   int currentIdx = 0;
 
   final GlobalKey<RefreshIndicatorState> _refreshIndicatorKey =
-  new GlobalKey<RefreshIndicatorState>();
+      new GlobalKey<RefreshIndicatorState>();
 
   @override
   Widget build(BuildContext context) {
@@ -97,7 +102,11 @@ class _CommunityDetailState extends State<CommunityDetail> {
             Padding(
               padding: ph24,
               child: Text(
-                int.parse(widget.dateTime.difference(DateTime.parse('${widget.createDate}')).inMinutes.toString()) < 60
+                int.parse(widget.dateTime
+                            .difference(DateTime.parse('${widget.createDate}'))
+                            .inMinutes
+                            .toString()) <
+                        60
                     ? '${int.parse(widget.dateTime.difference(DateTime.parse('${widget.createDate}')).inMinutes.toString())}분 전'
                     : int.parse(widget.dateTime
                                 .difference(
@@ -118,6 +127,7 @@ class _CommunityDetailState extends State<CommunityDetail> {
                     alignment: Alignment.center,
                     children: [
                       Container(
+                        width: Get.width * 0.5,
                         padding: ph24,
                         child: CarouselSlider(
                           items: [
@@ -134,27 +144,36 @@ class _CommunityDetailState extends State<CommunityDetail> {
                                           Navigator.of(context).push(
                                               MaterialPageRoute(
                                                   builder: (context) =>
-                                                      ClickFullImage(
+                                                      clickFullImages(
                                                           listImagesModel: [
-                                                            for (int i = 0; i < widget.image.length; i++)
+                                                            for (int i = 0;
+                                                                i <
+                                                                    widget.image
+                                                                        .length;
+                                                                i++)
                                                               'https://firebasestorage.googleapis.com/v0/b/academy-957f7.appspot.com/o/picture'
                                                                   '%2F${widget.id}%2F${widget.docId}%2F${widget.image[i]}?alt=media'
                                                           ],
-                                                          current: currentIdx)));
+                                                          current:
+                                                              currentIdx)));
                                         },
                                         child: ExtendedImage.network(
                                           item,
-                                          fit: BoxFit.cover,
+                                          fit: kIsWeb
+                                              ? BoxFit.contain
+                                              : BoxFit.cover,
                                           cache: true,
                                           enableLoadState: false,
                                         )),
-                                  )).toList(),
+                                  ))
+                              .toList(),
                           carouselController: widget.carouselCon,
                           options: CarouselOptions(
                             autoPlay: false,
                             padEnds: false,
                             enlargeCenterPage: false,
                             disableCenter: true,
+                            height: Get.height * 0.3,
                             viewportFraction: 1,
                             onPageChanged: (index, reason) {
                               setState(() {
@@ -214,50 +233,66 @@ class _CommunityDetailState extends State<CommunityDetail> {
             const SizedBox(
               height: 20,
             ),
-            !widget.anonymous ? Container() : Padding(
-              padding: ph24,
-              child: Text(
-                '성별 : ${js.selectJobTile[0]['gender']}',
-                style: f16w400,
-              ),
-            ),
-            !widget.anonymous ? Container() : const SizedBox(
-              height: 10,
-            ),
-            !widget.anonymous ? Container() : Padding(
-              padding: ph24,
-              child: Text(
-                '나이 : ${js.selectJobTile[0]['age']}살 ${js.selectJobTile[0]['ageValue']}',
-                style: f16w400,
-              ),
-            ),
-            !widget.anonymous ? Container() : const SizedBox(
-              height: 10,
-            ),
-            !widget.anonymous ? Container() : Padding(
-              padding: ph24,
-              child: Text(
-                '급여 : ${js.selectJobTile[0]['payValue']} ${js.selectJobTile[0]['pay']} '
-                    '${js.selectJobTile[0]['pay'] == '협의' ? '' : '만원'}',
-                style: f16w400,
-              ),
-            ),
-            !widget.anonymous ? Container() : const SizedBox(
-              height: 10,
-            ),
-            !widget.anonymous ? Container() : Padding(
-              padding: ph24,
-              child: Text(
-                '시간 : ${js.selectJobTile[0]['openH'].toString().padLeft(2,'0')} : '
-                    '${js.selectJobTile[0]['openM'].toString().padLeft(2,'0')} ~ '
-                    '${js.selectJobTile[0]['closeH'].toString().padLeft(2,'0')} : '
-                    '${js.selectJobTile[0]['closeM'].toString().padLeft(2,'0')}',
-                style: f16w400,
-              ),
-            ),
-            !widget.anonymous ? Container() : const SizedBox(
-              height: 20,
-            ),
+            !widget.anonymous
+                ? Container()
+                : Padding(
+                    padding: ph24,
+                    child: Text(
+                      '성별 : ${js.selectJobTile[0]['gender']}',
+                      style: f16w400,
+                    ),
+                  ),
+            !widget.anonymous
+                ? Container()
+                : const SizedBox(
+                    height: 10,
+                  ),
+            !widget.anonymous
+                ? Container()
+                : Padding(
+                    padding: ph24,
+                    child: Text(
+                      '나이 : ${js.selectJobTile[0]['age']}살 ${js.selectJobTile[0]['ageValue']}',
+                      style: f16w400,
+                    ),
+                  ),
+            !widget.anonymous
+                ? Container()
+                : const SizedBox(
+                    height: 10,
+                  ),
+            !widget.anonymous
+                ? Container()
+                : Padding(
+                    padding: ph24,
+                    child: Text(
+                      '급여 : ${js.selectJobTile[0]['payValue']} ${js.selectJobTile[0]['pay']} '
+                      '${js.selectJobTile[0]['pay'] == '협의' ? '' : '만원'}',
+                      style: f16w400,
+                    ),
+                  ),
+            !widget.anonymous
+                ? Container()
+                : const SizedBox(
+                    height: 10,
+                  ),
+            !widget.anonymous
+                ? Container()
+                : Padding(
+                    padding: ph24,
+                    child: Text(
+                      '시간 : ${js.selectJobTile[0]['openH'].toString().padLeft(2, '0')} : '
+                      '${js.selectJobTile[0]['openM'].toString().padLeft(2, '0')} ~ '
+                      '${js.selectJobTile[0]['closeH'].toString().padLeft(2, '0')} : '
+                      '${js.selectJobTile[0]['closeM'].toString().padLeft(2, '0')}',
+                      style: f16w400,
+                    ),
+                  ),
+            !widget.anonymous
+                ? Container()
+                : const SizedBox(
+                    height: 20,
+                  ),
             SizedBox(
               width: Get.width,
               height: 1,
@@ -268,16 +303,39 @@ class _CommunityDetailState extends State<CommunityDetail> {
             const SizedBox(
               height: 20,
             ),
+            widget.qna == true
+                ? Container()
+                : Padding(
+                    padding: ph24,
+                    child: Text(
+                      '댓글(${widget.commentCount})',
+                      style: f16w400,
+                    ),
+                  ),
+            widget.qna == true
+                ? Container()
+                :   const SizedBox(
+              height: 20,
+            ),
             Padding(
               padding: ph24,
-              child: Text(
-                '댓글(${widget.commentCount})',
-                style: f16w400,
-              ),
+              child: widget.qna == true
+                  ? Text(
+                      '답변',
+                      style: f16w400,
+                    )
+                  : Text(
+                      '댓글(${widget.commentCount})',
+                      style: f16w400,
+                    ),
             ),
             const SizedBox(
               height: 20,
             ),
+            Padding(
+              padding: ph24,
+              child: widget.qna == true ? Text('${widget.admin}',style: f16w500,) : Container(),
+            )
           ],
         ),
       ),

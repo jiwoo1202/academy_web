@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../provider/community_state.dart';
 import '../../../util/cupertino_utill.dart';
-import '../../../util/font.dart';
+import '../../../util/font/font.dart';
+import '../../../util/mouse_scroll.dart';
 
 class JobTimerScreen extends StatefulWidget {
   static final String id = 'job_timer_screen';
@@ -80,34 +81,38 @@ class _JobTimerScreenState extends State<JobTimerScreen> {
             SizedBox(
               height: Get.height * 0.352,
               width: Get.width * 0.4,
-              child: CupertinoPicker(
-                scrollController: FixedExtentScrollController(initialItem: setValue),
-                itemExtent: 60,
-                diameterRatio: 0.9,
-                looping: true,
-                onSelectedItemChanged: (index) {
-                  setState(() {
-                    setValue = hourList[index];
-                  });
-                },
-                selectionOverlay: Container(),
-                // selectionOverlay: CupertinoPickerDefaultSelectionOverlay(
-                //   background: Colors.transparent,
-                // ),
-                children: Utils.modelBuilder<int>(
-                  hourList,
-                      (index, value) {
-                    final isSelected = setValue == index;
-                    final color = isSelected
-                        ? Colors.black
-                        : Colors.black.withOpacity(0.5);
-                    final fontSize = isSelected ? 42 : 32;
-                    return Center(
-                      child: Text(value.toString().padLeft(2,'0'), style: TextStyle(
-                          color: color, fontSize: fontSize.toDouble(), fontFamily: 'Pretendard'
-                      ),),
-                    );
+              child: ScrollConfiguration(
+                behavior: MyCustomScrollBehavior(),
+                child: CupertinoPicker(
+                  scrollController: FixedExtentScrollController(initialItem: setValue),
+                  itemExtent: 60,
+                  diameterRatio: 0.9,
+                  looping: true,
+                  onSelectedItemChanged: (index) {
+                    setState(() {
+                      setValue = hourList[index];
+                    });
+
                   },
+                  selectionOverlay: Container(),
+                  // selectionOverlay: CupertinoPickerDefaultSelectionOverlay(
+                  //   background: Colors.transparent,
+                  // ),
+                  children: Utils.modelBuilder<int>(
+                    hourList,
+                        (index, value) {
+                      final isSelected = setValue == index;
+                      final color = isSelected
+                          ? Colors.black
+                          : Colors.black.withOpacity(0.5);
+                      final fontSize = isSelected ? 42 : 32;
+                      return Center(
+                        child: Text(value.toString().padLeft(2,'0'), style: TextStyle(
+                            color: color, fontSize: fontSize.toDouble(), fontFamily: 'Pretendard'
+                        ),),
+                      );
+                    },
+                  ),
                 ),
               ),
             ),
@@ -115,34 +120,37 @@ class _JobTimerScreenState extends State<JobTimerScreen> {
             SizedBox(
               height: Get.height * 0.352,
               width: Get.width * 0.4,
-              child: CupertinoPicker(
-                scrollController: FixedExtentScrollController(initialItem: setValue2),
-                itemExtent: 60,
-                diameterRatio: 0.9,
-                looping: true,
-                onSelectedItemChanged: (index) {
-                  setState(() {
-                    setValue2 = minList[index];
-                  });
-                },
-                selectionOverlay: Container(),
-                // selectionOverlay: CupertinoPickerDefaultSelectionOverlay(
-                //   background: Colors.transparent,
-                // ),
-                children: Utils.modelBuilder<int>(
-                  minList,
-                      (index, value) {
-                    final isSelected = setValue2 == index;
-                    final color = isSelected
-                        ? Colors.black
-                        : Colors.black.withOpacity(0.5);
-                    final fontSize = isSelected ? 42 : 32;
-                    return Center(
-                      child: Text(value.toString().padLeft(2,'0'), style: TextStyle(
-                          color: color, fontSize: fontSize.toDouble(), fontFamily: 'Pretendard'
-                      ),),
-                    );
+              child: ScrollConfiguration(
+                behavior: MyCustomScrollBehavior(),
+                child: CupertinoPicker(
+                  scrollController: FixedExtentScrollController(initialItem: setValue2),
+                  itemExtent: 60,
+                  diameterRatio: 0.9,
+                  looping: true,
+                  onSelectedItemChanged: (index) {
+                    setState(() {
+                      setValue2 = minList[index];
+                    });
                   },
+                  selectionOverlay: Container(),
+                  // selectionOverlay: CupertinoPickerDefaultSelectionOverlay(
+                  //   background: Colors.transparent,
+                  // ),
+                  children: Utils.modelBuilder<int>(
+                    minList,
+                        (index, value) {
+                      final isSelected = setValue2 == index;
+                      final color = isSelected
+                          ? Colors.black
+                          : Colors.black.withOpacity(0.5);
+                      final fontSize = isSelected ? 42 : 32;
+                      return Center(
+                        child: Text(value.toString().padLeft(2,'0'), style: TextStyle(
+                            color: color, fontSize: fontSize.toDouble(), fontFamily: 'Pretendard'
+                        ),),
+                      );
+                    },
+                  ),
                 ),
               ),
             )

@@ -14,7 +14,7 @@ import '../../../components/dialog/showAlertDialog.dart';
 import '../../../firebase/firebase_job.dart';
 import '../../../provider/job_state.dart';
 import '../../../provider/user_state.dart';
-import '../../../util/font.dart';
+import '../../../util/font/font.dart';
 import '../../../util/loading.dart';
 
 class JobHuntingRequestScreen extends StatefulWidget {
@@ -362,6 +362,7 @@ class _JobHuntingRequestScreenState extends State<JobHuntingRequestScreen> {
                     const SizedBox(width: 20,),
                     Container(width: 120,
                       child: DropdownButton<String>(
+                        underline: Container(),
                         isExpanded: true,
                         value: ageValue,
                         icon: Icon(Icons.arrow_drop_down),
@@ -676,9 +677,9 @@ class _JobHuntingRequestScreenState extends State<JobHuntingRequestScreen> {
       } else {
         _hasImageCheck = 'false';
       }
-      print('image finished');
+
     } catch (e) {
-      print('image error : $e');
+      // print('image error : $e');
     }
   }
 

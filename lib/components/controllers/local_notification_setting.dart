@@ -174,7 +174,7 @@ class LocalNotifyCation {
 
   scheduleDailyFirstNotification(int hour, int minutes, String notiString, String payload, bool isSound) async {
     final Int64List vibrationPattern = Int64List(2);
-    print('----first noti in -----');
+    // print('----first noti in -----');
 
     vibrationPattern[0] = 0;
     vibrationPattern[1] = 2000;

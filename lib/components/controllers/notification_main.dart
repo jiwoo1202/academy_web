@@ -45,7 +45,6 @@ class _NotificationMainState extends State<NotificationMain> {
           actions: [
             GestureDetector(
                 onTap: () async {
-                  print('notification in----');
                   // LocalNotifyCation().displayNotification(
                   //     title: '로컬 알람 테스트입니다', body: '여길 클릭 하면 페이지로 이동 됩니다.');
                 },
@@ -144,7 +143,6 @@ class _NotificationMainState extends State<NotificationMain> {
                       onPressed: () async {
                         setupInteractedMessage();
                         // var token = await FirebaseMessaging.instance.getToken();
-                        // print('get token : ${token}');
                         // FCMController().sendMessage(userToken: 'fuoYIWm8TIWe5wARfb9rAp:APA91bFXb58kusPMe8rktkRsrqF1eNhDPMYIOV0Vsc-mOHJDSEYHLAZVtCqUjK8735kyA829PnSaXGJPimHn5OtCKcU8lH75esTz3LUlb5FJCWvxrP5Xfkts-BHirVjIfdALNOCs1cUM', title: 'test app', body: 'app to app');
                       },
                       child: Text('token'))
@@ -165,9 +163,7 @@ class _NotificationMainState extends State<NotificationMain> {
 
   void _handleMessage(RemoteMessage message) {
     if (message.data['screen'] == 'screenA') {
-      print('it is correct!');
     } else {
-      print('what??? : ${message.data['screen']}');
     }
   }
 }

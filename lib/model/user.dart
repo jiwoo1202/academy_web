@@ -17,7 +17,7 @@ class User {
   String? userType;
   String? year;
   List? isBanned;
-
+  String? nickName;
   User(
       {this.createDate,
         this.day,
@@ -34,7 +34,8 @@ class User {
         this.token,
         this.isBanned,
         this.userType,
-        this.year,});
+        this.year,
+        this.nickName});
 
   User.fromMap(Map<String, dynamic> map)
       : createDate = map['createDate'],
@@ -52,7 +53,9 @@ class User {
         temp2 = map['temp2'],
         token = map['token'],
         userType = map['userType'],
-        year = map['year'];
+        year = map['year'],
+        nickName = map['nickName'];
+
 
   Map<String, dynamic> toMap() {
     return {
@@ -72,6 +75,7 @@ class User {
       "token": token,
       "userType": userType,
       "year": year,
+      "nickName":nickName
     };
   }
 
@@ -93,6 +97,7 @@ class User {
         token: doc['token'],
         userType: doc['userType'],
         year: doc['year'],
+        nickName: doc['nickName']
     );
   }
 }

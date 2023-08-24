@@ -7,7 +7,7 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:get/get.dart';
 
 import '../../util/colors.dart';
-import '../../util/font.dart';
+import '../../util/font/font.dart';
 
 
 
@@ -43,7 +43,7 @@ class _PolicyPageState extends State<PolicyPage> {
       ),
       body: SafeArea(
           child: InAppWebView(
-            initialUrlRequest: URLRequest(url: Uri.parse('https://www.naver.com')),
+            initialUrlRequest: URLRequest(url: Uri.parse('http://misnetwork.iptime.org:8880/useService')),
             onWebViewCreated: (InAppWebViewController webviewController){
               controller = webviewController;
               initialOptions: InAppWebViewGroupOptions(

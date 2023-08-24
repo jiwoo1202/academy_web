@@ -6,7 +6,7 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:get/get.dart';
 
 import '../../util/colors.dart';
-import '../../util/font.dart';
+import '../../util/font/font.dart';
 
 
 class PrivatePolicy extends StatefulWidget {
@@ -38,7 +38,7 @@ class _PrivatePolicyPageState extends State<PrivatePolicy> {
         backgroundColor: backColor,
       ),
       body: InAppWebView(
-        initialUrlRequest: URLRequest(url: Uri.parse('https://www.daum.net/')),
+        initialUrlRequest: URLRequest(url: Uri.parse('http://misnetwork.iptime.org:8880/policy')),
         onWebViewCreated: (InAppWebViewController webviewController){
           controller = webviewController;
           initialOptions: InAppWebViewGroupOptions(

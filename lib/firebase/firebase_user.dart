@@ -15,11 +15,11 @@ Future<void> userGet(String id,String pw)async{
   try {
     QuerySnapshot snapshot = await ref.where('id', isEqualTo: id).where('pw', isEqualTo: pw).get();
     final allData = snapshot.docs.map((doc) => doc.data()).toList();
-    print('alldata : ${allData.length}');
 
     controller.userList.value = snapshot.docs.map<User>((doc) {
            return User.fromDocument(doc);
     }).toList();
+
   } catch (e) {
     print(e);
   }
@@ -33,7 +33,7 @@ Future<void> firebaseUserDelete(String docId) async {
 
 Future<void> firebaseUserUpdate(String docId, String changeKey, String changeValue) async {
   try {
-    print('docId: ${docId} , ${changeKey} , ${changeValue}');
+
     CollectionReference ref = FirebaseFirestore.instance.collection('user');
     QuerySnapshot snapshot = await ref
         .where('docId', isEqualTo: docId).get();

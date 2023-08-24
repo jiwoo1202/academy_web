@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
-import '../../util/font.dart';
+import '../../util/font/font.dart';
 import '../switch/switch_button.dart';
 
 class TextFormFields extends StatelessWidget {
@@ -18,24 +19,26 @@ class TextFormFields extends StatelessWidget {
   final VoidCallback? textOnTap;
   final String? surffixIcon; //0 없음, 1 눈 아이콘, 2 등록
   final TextInputType? keyboardType;
-  const TextFormFields(
-      {Key? key,
-        required this.controller,
-        this.onChanged,
-        required this.obscureText,
-        this.inputFormatters,
-        required this.hintText,
-        this.onTap,
-        required this.surffixIcon,
-        this.textOnTap, this.keyboardType, this.enableTrue, this.enableText : true,
-
-      }) : super(key: key);
+  final ValueChanged<String>? onFieldSubmitted;
+  const TextFormFields({
+    Key? key,
+    required this.controller,
+    this.onChanged,
+    required this.obscureText,
+    this.inputFormatters,
+    required this.hintText,
+    this.onTap,
+    required this.surffixIcon,
+    this.textOnTap,
+    this.keyboardType,
+    this.enableTrue,
+    this.enableText: true, this.onFieldSubmitted,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width:GetPlatform.isWeb
-          ? Get.width * 0.5 : Get.width,
+      width: GetPlatform.isWeb ? Get.width * 0.5 : Get.width,
       padding: EdgeInsets.symmetric(vertical: 0),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8.0),
@@ -48,20 +51,29 @@ class TextFormFields extends StatelessWidget {
         keyboardType: keyboardType,
         enabled: enableText,
         style: f16w400,
+        onFieldSubmitted: onFieldSubmitted,
         inputFormatters: inputFormatters,
         decoration: InputDecoration(
           isDense: true,
-          contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
           border: InputBorder.none,
           suffixIcon: surffixIcon == '1'
               ? !obscureText
                   ? IconButton(
-                      icon: SvgPicture.asset('assets/icon/visiual.svg'),
+                      icon: SvgPicture.asset(
+                        'assets/icon/visiual.svg',
+                        width: kIsWeb && (Get.width * 0.2 <= 171) ? 20 : 24,
+                        height: kIsWeb && (Get.width * 0.2 <= 171) ? 20 : 24,
+                      ),
                       color: Colors.black,
                       onPressed: onTap,
                     )
                   : IconButton(
-                      icon: SvgPicture.asset('assets/icon/visiualOff.svg'),
+                      icon: SvgPicture.asset(
+                        'assets/icon/visiualOff.svg',
+                        width: kIsWeb && (Get.width * 0.2 <= 171) ? 20 : 24,
+                        height: kIsWeb && (Get.width * 0.2 <= 171) ? 20 : 24,
+                      ),
                       color: Colors.black,
                       onPressed: onTap,
                     )
@@ -74,7 +86,9 @@ class TextFormFields extends StatelessWidget {
                       ))
                   : null,
           hintText: hintText,
-          hintStyle: f16w400grey8,
+          hintStyle: (kIsWeb && (Get.width * 0.2 <= 171))
+              ? f12w400grey8
+              : f16w400grey8,
         ),
       ),
     );

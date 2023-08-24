@@ -48,7 +48,6 @@ class FCM {
     terminateNotification();
 
     // final token =
-    // _firebaseMessaging.getToken().then((value) => print('Token: $value'));
   }
 
   foregroundNotification() {
@@ -59,14 +58,13 @@ class FCM {
             ?.createNotificationChannel(channel);
         if (message.data.containsKey('data')) {
           streamCtlr.sink.add(message.data['data']);
-          print('contains--------------3');
+
         }
         if (message.data.containsKey('notification')) {
           streamCtlr.sink.add(message.data['notification']);
-          print('contains--------------4');
+
         }
         if (message.notification != null) {
-          // print('Message also contained a notification: ${message.notification}');
           flutterLocalNotificationsPlugin.show(
               message.hashCode,
               message.notification?.title,
@@ -82,9 +80,7 @@ class FCM {
                   )),
               payload: '${message.data['which']}');
         }
-        print('asoichasohacsoi11 : ${message.notification!.title!}');
-        print('asoichasohacsoi22 : ${message.notification!.body!}');
-        print('asoichasohacsoi33 : ${message.data['which']}');
+
         // up.fcmDocId = '${message.data['docId']}';
         titleCtlr.sink.add(message.notification!.title!);
         bodyCtlr.sink.add(message.notification!.body!);
@@ -99,14 +95,13 @@ class FCM {
       (message) async {
         if (message.data.containsKey('data')) {
           streamCtlr.sink.add(message.data['data']);
-          print('contains--------------1');
+
         }
         if (message.data.containsKey('notification')) {
           streamCtlr.sink.add(message.data['notification']);
-          print('contains--------------2');
+
         }
         // if (message.notification != null) {
-        //   // print('Message also contained a notification: ${message.notification}');
         //   flutterLocalNotificationsPlugin.show(
         //       message.hashCode,
         //       message.notification?.title,
@@ -125,9 +120,7 @@ class FCM {
         //           )),
         //       payload: '${message.data['which']}');
         // }
-        print('ㄴㄹㅁㄴㅁㅁㅁㅁ : ${message.notification!.title!}');
-        print('ㄴㄹㅁㄴㅁㅁㅁㅁ22 : ${message.notification!.body!}');
-        print('ㄴㄹㅁㄴㅁㅁㅁㅁ33 : ${message.data['which']}');
+
         if(message.data['which'] == 'mystory'){
           Get.to(StoryMainScreen());
           // Navigator.push(navigatorContext!, MaterialPageRoute(builder: (context) => MyStoryDetailScreen(
@@ -156,16 +149,14 @@ class FCM {
     if (initialMessage != null) {
       if (initialMessage.data.containsKey('data')) {
         streamCtlr.sink.add(initialMessage.data['data']);
-        print('contains--------------5');
+
       }
       if (initialMessage.data.containsKey('notification')) {
         streamCtlr.sink.add(initialMessage.data['notification']);
-        print('contains--------------6');
+
       }
 
-      print('ㅋㅋㅋㅋㅋ : ${initialMessage.notification!.title!}');
-      print('ㅋㅋㅋㅋㅋㅋ22 : ${initialMessage.notification!.body!}');
-      print('ㅋㅋㅋㅋㅋㅋ33 : ${initialMessage.data['which']}');
+
 
       if(initialMessage.data['which'] == 'mystory'){
         Get.to(StoryMainScreen());
@@ -210,11 +201,11 @@ class FCMController {
     );
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      print('User granted permission');
+
     } else if (settings.authorizationStatus == AuthorizationStatus.provisional) {
-      print('User granted provisional permission');
+
     } else {
-      print('User declined or has not accepted permission');
+
     }
 
     try {

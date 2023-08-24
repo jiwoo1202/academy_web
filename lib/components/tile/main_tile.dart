@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
-
-import '../../util/font.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import '../../util/font/font.dart';
 import '../switch/switch_button.dart';
 
 class MainTile extends StatelessWidget {
@@ -11,8 +11,10 @@ class MainTile extends StatelessWidget {
   final String title;
   final String subject;
   final String arrowString;
+  final String? storage;
   final bool isOpened;
   final bool isStudent;
+  final bool? isSwitched;
   final VoidCallback switchOnTap;
   final VoidCallback? onTap;
   final GestureLongPressCallback? onLongPressed;
@@ -28,7 +30,9 @@ class MainTile extends StatelessWidget {
       this.onTap,
       this.subject: '',
       this.arrowString: '',
-      this.onLongPressed})
+      this.onLongPressed,
+      this.isSwitched = true,
+        this.storage})
       : super(key: key);
 
   @override
@@ -43,7 +47,9 @@ class MainTile extends StatelessWidget {
           color: Color(0xffFAFAFA),
           borderRadius: BorderRadius.all(Radius.circular(8.0)),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
+            padding: kIsWeb && (Get.width * 0.2 <= 171)
+                ? EdgeInsets.symmetric(horizontal: 20, vertical: 18)
+                : const EdgeInsets.symmetric(horizontal: 24, vertical: 18),
             width: Get.width,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -53,14 +59,26 @@ class MainTile extends StatelessWidget {
                   child: Text(
                     '${tName} 선생님',
                     textAlign: TextAlign.start,
-                    style: f16w700,
+                    style:
+                        kIsWeb && (Get.width * 0.2 <= 171) ? f12w700 : f16w700,
                   ),
                 ),
                 Container(
-                  child: Text(
-                    '${tCreateDate}',
-                    textAlign: TextAlign.start,
-                    style: f16w500greyA,
+                  child: Row(
+                    children: [
+                      Text(
+                        '${tCreateDate}',
+                        textAlign: TextAlign.start,
+                        style: kIsWeb && (Get.width * 0.2 <= 171)
+                            ? f12w500greyA
+                            : f16w500greyA,
+                      ),
+                      Spacer(),
+                      storage=='임시'? Padding(
+                        padding: const EdgeInsets.only(right: 13),
+                        child: Text('등록전',style:f16w700primary,),
+                      ):Container(),
+                    ],
                   ),
                 ),
                 Padding(
@@ -72,33 +90,59 @@ class MainTile extends StatelessWidget {
                           ? Text(
                               title,
                               textAlign: TextAlign.start,
-                              style: f16w700greyA,
+                              style: kIsWeb && (Get.width * 0.2 <= 171)
+                                  ? f12w500greyA
+                                  : f16w700greyA,
                             )
                           : Container(),
                       !isStudent ? Spacer() : Container(),
                       !isStudent
-                          ? SwitchButton(
-                              value: isOpened,
-                              onTap: switchOnTap,
-                            )
+                          ? isSwitched == true
+                              ? SwitchButton(
+                                  value: isOpened,
+                                  onTap: switchOnTap,
+                                )
+                              : Container()
                           : Container(),
-                      Text(
-                        subject,
-                        textAlign: TextAlign.center,
-                        style: f16w700primary,
-                      ),
+                      GetPlatform.isWeb
+                          ? Container(
+                              padding: EdgeInsets.only(right: 13.0),
+                              child: Text(
+                                subject,
+                                textAlign: TextAlign.center,
+                                overflow: TextOverflow.ellipsis,
+                                style: kIsWeb && (Get.width * 0.2 <= 171)
+                                    ? f12w700primary
+                                    : f16w700primaryEl,
+                              ),
+                            )
+                          : Text(
+                              subject,
+                              textAlign: TextAlign.center,
+                              style: f16w700primary,
+                            ),
                       isStudent ? Spacer() : Container(),
                       isStudent
                           ? Row(
                               children: [
                                 Text(
                                   arrowString == '' ? '시험 보기' : arrowString,
-                                  style: f16w700,
+                                  style: kIsWeb && (Get.width * 0.2 <= 171)
+                                      ? f10w700
+                                      : f16w700,
                                 ),
                                 SizedBox(
                                   width: 5,
                                 ),
-                                SvgPicture.asset('assets/arrow.svg')
+                                kIsWeb && (Get.width * 0.2 <= 171)
+                                    ? SvgPicture.asset(
+                                        'assets/arrow.svg',
+                                        width: 12,
+                                        height: 12,
+                                      )
+                                    : SvgPicture.asset(
+                                        'assets/arrow.svg',
+                                      )
                               ],
                             )
                           : Container(),

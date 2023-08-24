@@ -17,4 +17,9 @@ class TestState extends GetxController{
 
   //test ind
   final individualAnswer = [].obs;
+
+  final answerVisiual = [].obs; // 답 공개비공개
+  final answerScore = [].obs;// 추가
+  final answerDate = [].obs;// 추가
+  final answerVisiual2 = [].obs; // 답 공개비공개
 }

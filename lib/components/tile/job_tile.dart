@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../util/colors.dart';
-import '../../util/font.dart';
+import '../../util/font/font.dart';
 import '../switch/switch_button.dart';
 
 class JobTile extends StatelessWidget {

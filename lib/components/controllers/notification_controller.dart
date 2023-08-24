@@ -54,23 +54,16 @@
 //
 //     /// Handles regular notification taps.
 //     if(receivedAction.actionType == ActionType.Default || receivedAction.actionType == ActionType.SilentAction){
-//       // print('receivedAction~~ ${receivedAction}');
 //       Get.to(() => JobHuntingScreen());
 //       if(receivedAction.id == 0){
 //         if(receivedAction.buttonKeyPressed == 'accept') {
-//           print('accept');
 //         }
 //         if(receivedAction.buttonKeyPressed == 'reject') {
-//           print('reject');
 //         }
 //         if(receivedAction.buttonKeyPressed == '11') {
-//           print('11');
 //         }
 //         if(receivedAction.buttonKeyPressed == 'REPLY') {
-//           print('REPLY');
-//           print('butoninpt: ${receivedAction.buttonKeyInput}');
 //         }
-//         print('액션이야~~');
 //       }
 //     }
 //   }

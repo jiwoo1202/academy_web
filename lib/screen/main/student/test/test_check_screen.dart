@@ -2,18 +2,16 @@ import 'package:academy/components/button/choose_button.dart';
 import 'package:academy/firebase/firebase_test.dart';
 import 'package:academy/provider/answer_state.dart';
 import 'package:academy/screen/main/student/test/test_main_screen.dart';
-import 'package:academy/screen/mypage/mypage_screen.dart';
 import 'package:academy/util/padding.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
+import 'package:http/http.dart' as http;
 import '../../../../api/pdf/pdf_api.dart';
 import '../../../../provider/test_state.dart';
 import '../../../../util/colors.dart';
 
-import '../../../../util/font.dart';
+import '../../../../util/font/font.dart';
 import '../../../login/login_main_screen.dart';
-import '../../../mypage/score/score_check_screen.dart';
 import 'test_file.dart';
 
 class TestCheckScreen extends StatefulWidget {
@@ -38,8 +36,6 @@ class _TestCheckScreenState extends State<TestCheckScreen> {
     Future.delayed(Duration.zero, () async {
       final ts = Get.put(TestState());
       // final as = Get.put(AnswerState());
-      print('doc id 123 : ${ts.testDocId.value}');
-      print('answer doc id : ${ts.answerDocId.value}');
       // await answerGet('fNWPBW7v8VQJ1HzKeYu5');
       await firebaseAnswerGet(ts.answerDocId.value);
       await firebaseSingleQuestionGet(ts.testDocId.value);
@@ -59,22 +55,23 @@ class _TestCheckScreenState extends State<TestCheckScreen> {
       appBar: AppBar(
         title: Text('내 점수 확인', style: f21w700grey5),
         backgroundColor: backColor,
+        automaticallyImplyLeading: false,
         elevation: 0,
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back_ios_new,
-            color: Color(0xff6f7072),
-          ),
-          onPressed: () {
-            // 나눠서
-            if(widget.myPage==true){
-            Get.back();
-            }
-            else if(widget.myPage==false){
-              Get.offAllNamed(BottomNavigator.id);
-            }
-          },
-        ),
+        // leading: IconButton(
+        //   icon: Icon(
+        //     Icons.arrow_back_ios_new,
+        //     color: Color(0xff6f7072),
+        //   ),
+        //   onPressed: () {
+        //     // 나눠서
+        //     if(widget.myPage==true){
+        //     Get.back();
+        //     }
+        //     else if(widget.myPage==false){
+        //       Get.offAllNamed(BottomNavigator.id);
+        //     }
+        //   },
+        // ),
         actions: [
           Padding(
             padding: const EdgeInsets.all(8.0),
@@ -84,15 +81,17 @@ class _TestCheckScreenState extends State<TestCheckScreen> {
                     isTrue: true,
                     title: '시험지',
                     onTap: () async {
-                      final url =
-                          //
+                      var url =
                           'https://firebasestorage.googleapis.com/v0/b/academy-957f7.appspot.com/o/12345%2F${widget.teacherName}%2F${widget.docId}.pdf?alt=media';
-                      final file = await PDFApi.loadNetwork(url);
-                      Get.back();
-                      Get.to(() => TestFilePage(
-                            file: file,
-                            myPage:widget.myPage
-                          ));
+                      // final url =
+                      //     //
+                      //     'https://firebasestorage.googleapis.com/v0/b/academy-957f7.appspot.com/o/12345%2F${widget.teacherName}%2F${widget.docId}.pdf?alt=media';
+                      final file =
+                      await http.get(Uri.parse(url));
+                      final content = file.bodyBytes;
+                      // Get.back();
+                      Get.toNamed(TestFilePage.id,arguments: TestFilePage(content: content,));
+
                     })),
           )
         ],
@@ -165,10 +164,8 @@ class _TestCheckScreenState extends State<TestCheckScreen> {
                                                                     number[idx]
                                                             ? nowColor
                                                             : ts.mySingleAnswer[0]['answer'][index] != ts.realAnswer[0]['answer'][index] &&
-                                                                    ts.realAnswer[0]['answer'][index] ==
-                                                                        number[
-                                                                            idx]
-                                                                ? Colors.red
+                                                                    ts.realAnswer[0]['answer'][index] == number[idx] ||ts.mySingleAnswer[0]['answer'][index] ==''
+                                                            ? Colors.red
                                                                 : Colors.white,
                                                         border: Border.all(
                                                             width: 1,
@@ -189,23 +186,17 @@ class _TestCheckScreenState extends State<TestCheckScreen> {
                                                           '${idx + 1}',
                                                           textAlign:
                                                               TextAlign.center,
-                                                          style: ts.mySingleAnswer[0]['answer'][index] ==
-                                                                      ts.realAnswer[0]
-                                                                              ['answer'][
-                                                                          index] &&
-                                                                  ts.mySingleAnswer[0]
-                                                                              ['answer']
-                                                                          [
-                                                                          index] ==
-                                                                      number[
-                                                                          idx]
-                                                              ? f16Whitew700
-                                                              : ts.realAnswer[0]
-                                                                              ['answer']
-                                                                          [index] ==
-                                                                      number[idx]
-                                                                  ? f16Whitew700
-                                                                  : f16w700,
+                                                          style:ts.mySingleAnswer[0]['answer'][index] ==ts.realAnswer[0]['answer'][index]&&ts.mySingleAnswer[0]['answer'][index]==number[idx]
+                                                              ?f16Whitew700
+                                                              :ts.mySingleAnswer[0]['answer'][index]==  number[idx] || (ts.mySingleAnswer[0]['answer'][index] ==''&& ts.realAnswer[0]['answer'][index] ==  number[idx])
+                                                              ?f16Whitew700
+                                                              : f16w700,
+                                                          // ts.mySingleAnswer[0]['answer'][index] == ts.realAnswer[0]['answer'][index] &&
+                                                          //         ts.mySingleAnswer[0]['answer'][index] == number[idx]
+                                                          //     ? f16Whitew700
+                                                          //     : ts.realAnswer[0]['answer'][index] == number[idx] || ts.mySingleAnswer[0]['answer'] ==''
+                                                          //         ? f16Whitew700
+                                                          //         : f16w700,
                                                         ),
                                                       ],
                                                     ),
@@ -277,7 +268,6 @@ class _TestCheckScreenState extends State<TestCheckScreen> {
 
     for (int i = 0; i < ts.realAnswer[0]['answer'].length; i++) {
       if (ts.realAnswer[0]['answer'][i] == ts.mySingleAnswer[0]['answer'][i]) {
-        print('yes');
         correct++;
       }
     }

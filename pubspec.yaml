@@ -55,10 +55,24 @@ dependencies:
   loading_animation_widget: ^1.1.0+5
   mask_text_input_formatter: ^2.4.0
   path_provider: ^2.0.11
+  pdfx: ^2.3.0
   percent_indicator: ^4.2.2
+  shared_preferences: ^2.0.17
   smooth_page_indicator: ^1.0.0+2
   toggle_switch: ^2.0.1
   url_strategy: ^0.2.0
+  universal_html: ^2.0.9
+  audioplayers: ^3.0.1
+  get_ip_address: ^0.0.5
+  excel: ^2.1.0
+  video_player_web: ^2.0.16
+  video_player: ^2.6.1
+  simple_timer: ^2.0.0
+  wakelock: ^0.6.2
+  chewie: ^1.5.0
+  dotted_line: ^3.2.2
+  pdf: ^3.8.4
+  printing: ^5.8.0
 #  url_launcher: ^6.1.9
 
   get: ^4.6.5
@@ -89,6 +103,7 @@ flutter:
   assets:
     - assets/bottom/
     - assets/icon/
+    - assets/landing/
     - assets/
 
   # An image asset can refer to one or more resolution-specific "variants", see

@@ -1,50 +1,82 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:academy/model/answer.dart';
 import 'package:academy/provider/user_state.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:get/get.dart';
-
+import 'package:flutter/foundation.dart' show kIsWeb;
 import '../provider/answer_state.dart';
 import '../provider/test_state.dart';
 
-Future<void> firebaseAnswerUpload(UploadTask? uploadTask) async {
+Future<void> firebaseAnswerUpload(
+    Uint8List uploadfile, Uint8List? audioFile, String timer, bool scoreVisual,String category) async {
   final as = Get.put(AnswerState());
   final us = Get.put(UserState());
 
   CollectionReference ref = FirebaseFirestore.instance.collection('answer');
   Answer ass = Answer(
-      isIndividual: 'false',
-      individualBody: [],
-      individualTitle: [],
-      individualFile: [],
-      createDate: '${DateTime.now()}',
-      answer: as.answer.toList(),
-      answerCount: '',
-      docId: '',
-      group: '',
-      password: '${as.password}',
-      pdfCategory: '${as.pdfCategory}',
-      pdfName: '${as.pdfName}',
-      pdfUploadName: '${as.pdfUploadName}',
-      state: '대기',
-      teacher: '${as.teacher}',
-      temp1: '',
-      temp2: '', images: [],
-      );
+    isIndividual: 'false',
+    audio: [],
+    individualBody: [],
+    individualTitle: [],
+    individualFile: [],
+    student: [],
+    createDate: '${DateTime.now()}',
+    answer: as.answer.toList(),
+    nickName: us.userList[0].nickName,
+    answerCount: '',
+    docId: '',
+    group: '',
+    category:category,
+    scoreVisual: '${scoreVisual}',
+    password: '${as.password}',
+    pdfCategory: '${as.pdfCategory}',
+    pdfName: '${as.pdfName}',
+    pdfUploadName: as.pdfUploadName,
+    pdfUploadName2: as.pdfUploadName2,
+    state: '완료',
+    teacher: '${as.teacher}',
+    temp1: [],
+    temp2: timer,
+    images: [],
+  );
   ref.add(ass.toMap()).then((doc) async {
     DocumentReference userDocRef =
         FirebaseFirestore.instance.collection('answer').doc(doc.id);
     as.docId.value = doc.id;
+    final ref = FirebaseStorage.instance
+        .ref()
+        .child('12345')
+        .child('${as.teacher}')
+        .child('${as.docId}.pdf');
+    UploadTask uploadTask = ref.putData(
+      uploadfile,
+      SettableMetadata(contentType: 'application/pdf'),
+    );
+    final snapshot = await uploadTask.whenComplete(() => null);
 
-    // print('1: ${as.docId}');
-    _uploadFile(as.teacher.value, as, uploadTask);
+    if (audioFile != null) {
+      final firebaseStorageRef = FirebaseStorage.instance
+          .ref()
+          .child('teacher')
+          .child('audio')
+          .child('${as.teacher}')
+          .child('${as.docId}')
+          .child('${as.docId}');
+      final uploadTask2 = firebaseStorageRef.putData(
+          audioFile, SettableMetadata(contentType: 'audio/mpeg'));
+      await uploadTask2.then((p0) => null);
+      await userDocRef.update({
+        "audio": 'yes',
+        "pdfUploadName2":as.pdfUploadName2});
+    } else {
+      await userDocRef.update({"audio": 'no'});
+    }
     await userDocRef.update({'docId': '${doc.id}'});
   });
 }
-
-
 
 // 선생님 비밀번호 가져오는 함수(추가)
 Future<void> getTeacherPassword(String docId) async {
@@ -55,20 +87,25 @@ Future<void> getTeacherPassword(String docId) async {
   List a = allData;
 
   ts.teacherPassword.value = a[0]['password'];
-  print('${ts.teacherPassword.value}');
+
 }
 
 Future<void> _uploadFile(
     String teacher, AnswerState as, UploadTask? uploadTask) async {
   final file = File(as.path.value);
-  print('2: ${as.docId.value}');
+
   final ref = FirebaseStorage.instance
       .ref()
       .child('12345')
       .child('${teacher}')
       .child('${as.docId.value}.pdf');
-  print('3: ${as.docId.value}');
-  uploadTask = ref.putFile(file);
+
+  uploadTask = kIsWeb
+      ? ref.putFile(
+          file,
+          SettableMetadata(contentType: 'application/pdf'),
+        )
+      : ref.putFile(file);
   final snapshot = await uploadTask.whenComplete(() => null);
 }
 
@@ -79,7 +116,7 @@ Future<void> firebaseAnswerGet() async {
 
   final allData = snapshot.docs.map((doc) => doc.data()).toList();
   as.answer.value = allData;
-  print('real answer : ${as.answer}');
+
 }
 
 Future<void> answerGet(String docId) async {
@@ -104,7 +141,6 @@ Future<void> firebaseIndividualGet(String docId) async {
   final allData = snapshot.docs.map((doc) => doc.data()).toList();
   ts.individualTestGet.value = allData;
 }
-
 
 // state가 대기인 상태만 가져오는 함수(추가)
 Future<void> getState(String state) async {
@@ -136,10 +172,9 @@ Future<void> getAnswerLength(String docId) async {
 
   final allData = snapshot.docs.map((doc) => doc.data()).toList();
   List a = allData;
-  // print('${a}');
 
   as.answerlength.value = a[0]['answer'];
-  // print('11||${as.answerlength.value}');
+  as.scoreVisual.value = a[0]['scoreVisual'];
 }
 
 // teacher 이름과 날짜 가져오는 함수(추가)
@@ -151,18 +186,14 @@ Future<void> getNameAndDate(String docId) async {
 
   final allData = snapshot.docs.map((doc) => doc.data()).toList();
   List a = allData;
-  // print('${a}');
-
   as.getTeacherName.value = a[0]['teacher'];
   as.getDate.value = a[0]['createDate'];
-  // print('11||${as.answerlength.value}');
 }
 
-Future<void>  deleteAnswer(String docId) async{
-  DocumentReference ref = FirebaseFirestore.instance.collection('answer').doc(docId);
-  ref.update({
-    'state' : '삭제'
-  });
+Future<void> deleteAnswer(String docId) async {
+  DocumentReference ref =
+      FirebaseFirestore.instance.collection('answer').doc(docId);
+  ref.update({'state': '삭제'});
 }
 
 class FirebaseStorageApi {
@@ -174,8 +205,13 @@ class FirebaseStorageApi {
     }
   }
 
-  static Future<List<String>> _deleteFolder(String folder, List<String> paths) async {
-    ListResult list = await FirebaseStorage.instance.ref().child(folder).listAll();
+  //deleterfile
+
+
+  static Future<List<String>> _deleteFolder(
+      String folder, List<String> paths) async {
+    ListResult list =
+        await FirebaseStorage.instance.ref().child(folder).listAll();
     List<Reference> items = list.items;
     List<Reference> prefixes = list.prefixes;
     for (Reference item in items) {
@@ -190,34 +226,92 @@ class FirebaseStorageApi {
 
 // individual test 수정
 Future<void> deleteIndividualTest(String docId) async {
-  CollectionReference ref =
-  FirebaseFirestore.instance.collection('answer');
-  QuerySnapshot snapshot = await ref
-      .where('docId', isEqualTo:docId)
-      .get();
+  CollectionReference ref = FirebaseFirestore.instance.collection('answer');
+  QuerySnapshot snapshot = await ref.where('docId', isEqualTo: docId).get();
   snapshot.docs[0].reference.delete();
 }
-// getAnswerLength('${as.getDocid[index]}');
-//                 ts.answerDocId.value = '${as.getDocid[index]}';
-//                 as.getTeacherName.value =
-//                     '${as.teacherList[index]}';
-//                 getTeacherPassword(ts.answerDocId.value);
-//                     '${DateFormat('yyyy-MM-dd HH:mm').format(DateTime.parse(as.createList[index]))}';
-//                 showPasswordDialog(context, '비밀번호', () async {
-//                   if (_pwcontroller.text == ts.teacherPassword.value) {
-//                     if(as.stateList[index]['isIndividual'] == 'true'){
-//                       Get.back();
-//                       Get.to(() => TestIndividual(docId: as.stateList[index]['docId'],));
-//                     }else{
-//                       final url =
-//                           'https://firebasestorage.googleapis.com/v0/b/academy-957f7.appspot.com/o/12345%2F12345%2F${as.getDocid[index]}.pdf?alt=media&token=5bcde09c-3145-4cdd-bbf8-886299c8a44f';
-//                       final file = await PDFApi.loadNetwork(url);
-//                       Get.back();
-//                       Get.to(() => TestMainScreen(file: file));
-//                     }
-//                   } else {
-//                     Get.back();
-//                     showOnlyConfirmDialog(context, '비밀번호가 맞지 않습니다');
-//                     print('꽝');
-//                   }
-//                 }, _pwcontroller);
+
+// 선생님 시험 문제 답 한 것들 가져오기
+Future<void> studentAnswerGet(String answerDoc) async{
+  final as = Get.put(AnswerState());
+
+  CollectionReference ref = FirebaseFirestore.instance.collection('test');
+
+  QuerySnapshot snapshot = await ref.where('answerDocid', isEqualTo: answerDoc).get();
+  final allData = snapshot.docs.map((doc) => doc.data()).toList();
+  as.testAnswerList.value = allData;
+  //선생님 정답 가저오기
+  CollectionReference ref2 = FirebaseFirestore.instance.collection('answer');
+
+  QuerySnapshot snapshot2 = await ref2.where('docId', isEqualTo: answerDoc).get();
+  final allData2 = snapshot2.docs.map((doc) => doc.data()).toList();
+  List a = allData2;
+  as.settingGetAnswer.value = a;
+}
+
+// 전체문제 임시저장 업로드
+Future<void> firebaseAnswerUploadSave(
+    Uint8List uploadfile, Uint8List? audioFile, String timer,bool scoreVisual) async {
+  final as = Get.put(AnswerState());
+  final us = Get.put(UserState());
+
+  CollectionReference ref = FirebaseFirestore.instance.collection('answer');
+  Answer ass = Answer(
+    isIndividual: 'false',
+    audio: [],
+    individualBody: [],
+    individualTitle: [],
+    individualFile: [],
+    student: [],
+    createDate: '${DateTime.now()}',
+    answer: as.answer.toList(),
+    nickName: us.userList[0].nickName,
+    answerCount: '',
+    docId: '',
+    group: '',
+    scoreVisual:'${scoreVisual}',
+    password: '${as.password}',
+    pdfCategory: '${as.pdfCategory}',
+    pdfName: '${as.pdfName}',
+    pdfUploadName: as.pdfUploadName,
+    pdfUploadName2: as.pdfUploadName2,
+    state: '임시',
+    teacher: '${as.teacher}',
+    temp1: [],
+    temp2: timer,
+    images: [],
+  );
+  ref.add(ass.toMap()).then((doc) async {
+    DocumentReference userDocRef =
+    FirebaseFirestore.instance.collection('answer').doc(doc.id);
+    as.docId.value = doc.id;
+    final ref = FirebaseStorage.instance
+        .ref()
+        .child('12345')
+        .child('${as.teacher}')
+        .child('${as.docId}.pdf');
+    UploadTask uploadTask = ref.putData(
+      uploadfile,
+      SettableMetadata(contentType: 'application/pdf'),
+    );
+    final snapshot = await uploadTask.whenComplete(() => null);
+    if (audioFile != null) {
+      final firebaseStorageRef = FirebaseStorage.instance
+          .ref()
+          .child('teacher')
+          .child('audio')
+          .child('${as.teacher}')
+          .child('${as.docId}')
+          .child('${as.docId}');
+      final uploadTask2 = firebaseStorageRef.putData(
+          audioFile, SettableMetadata(contentType: 'audio/mpeg'));
+      await uploadTask2.then((p0) => null);
+      await userDocRef.update({
+        "audio": 'yes',
+        });
+    } else {
+      await userDocRef.update({"audio": 'no'});
+    }
+    await userDocRef.update({'docId': '${doc.id}'});
+  });
+}

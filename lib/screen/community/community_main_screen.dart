@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -5,7 +6,7 @@ import 'package:get/get.dart';
 import '../../components/dialog/showAlertDialog.dart';
 import '../../provider/user_state.dart';
 import '../../util/colors.dart';
-import '../../util/font.dart';
+import '../../util/font/font.dart';
 import 'job/job_hunting_screen.dart';
 import 'notice/notice_main_screen.dart';
 import 'story/story_main_screen.dart';
@@ -76,18 +77,17 @@ class _CommunityMainScreenState extends State<CommunityMainScreen>
 
     return WillPopScope(
       onWillPop: () {
-        return onTerminated(context);
+        return GetPlatform.isWeb ? Future(() => true) : onTerminated(context);
       },
       child: Scaffold(
         appBar: PreferredSize(
-          preferredSize: Size(double.infinity, 80),
+          preferredSize: Size(double.infinity, kIsWeb ? Get.height*0.2 : 80),
           child: TabBar(
               padding: const EdgeInsets.only(top: 60),
               onTap: (idx) {
                 setState(() {
                   _currentIndex = idx;
                 });
-                // print('idx : ${_tabController.index}');
               },
               isScrollable: false,
               controller: _tabController,

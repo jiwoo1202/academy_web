@@ -264,7 +264,6 @@ class DrugSearch extends SearchDelegate {
                                 height: 24,
                               ),
                               onTap: () {
-                                print('query: ' + query);
                                 // for(var i=0; i<searchTerms.length; i++) {
                                 //   var search = jsonDecode(searchTerms[i]);
                                 //   if(search['keyword'] == query) {
@@ -346,7 +345,6 @@ class DrugSearch extends SearchDelegate {
                                 height: 24,
                               ),
                               onTap: () {
-                                print('query: ' + result);
                                 // for(var i=0; i<searchTerms.length; i++) {
                                 //   var search = jsonDecode(searchTerms[i]);
                                 //   if(search['keyword'] == result) {

@@ -1,32 +1,58 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:academy/components/dialog/showAlertDialog.dart';
+import 'package:academy/components/footer/footer.dart';
+import 'package:academy/components/switch/switch_button.dart';
+import 'package:academy/screen/main/main_screen.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
+import 'package:http/http.dart' as http;
 import '../../../../components/tile/textform_field.dart';
 import '../../../../firebase/firebase_answer.dart';
+import '../../../../model/answer.dart';
 import '../../../../provider/answer_state.dart';
 import '../../../../provider/user_state.dart';
 import '../../../../util/colors.dart';
 
-import '../../../../util/font.dart';
+import '../../../../util/font/font.dart';
 import '../../../../util/loading.dart';
+import '../../../../util/padding.dart';
+import '../../../../util/refresh_manager.dart';
 import '../../../login/login_main_screen.dart';
 
 class PdfUploadScreen extends StatefulWidget {
+  static final String id = '/pdf_upload';
+
   final String? category;
-  final String? pdfUploadName;
+  final List? pdfUploadName;
+  final List? pdfUploadName2;
   final String? password;
   final String? docId;
   final bool? edit;
   final String? teacherName;
+  final String? audio;
+  final String? countdown;
   final List? answerlength;
-  const PdfUploadScreen({Key? key,  this.category,  this.pdfUploadName,  this.password, this.edit, this.answerlength, this.docId, this.teacherName}) : super(key: key);
+  final String? state;
+  final String? scoreVisual;
+  final String? subject;
+  const PdfUploadScreen(
+      {Key? key,
+      this.category,
+      this.pdfUploadName,
+      this.password,
+      this.edit,
+      this.answerlength,
+      this.docId,
+      this.teacherName, this.audio, this.countdown, this.state, this.pdfUploadName2, this.scoreVisual, this.subject})
+      : super(key: key);
 
   @override
   State<PdfUploadScreen> createState() => _PdfUploadScreenState();
@@ -34,644 +60,1256 @@ class PdfUploadScreen extends StatefulWidget {
 
 class _PdfUploadScreenState extends State<PdfUploadScreen> {
   PlatformFile? pickedFile;
+  PlatformFile? pickedFile2;
   UploadTask? uploadTask;
   String isfilePath = '';
+  String isfilePath2 = '';
+  String _hasAudio = '';
   TextEditingController _testNameController = TextEditingController();
   TextEditingController _testPwController = TextEditingController();
   TextEditingController _testCountController = TextEditingController();
+  TextEditingController _testCountController2 = TextEditingController();
+  List<String> number = ['1', '2', '3', '4', '5'];
+
   final _obscureText = false.obs;
   List _answerList = [];
   bool _imageLoading = false;
+  bool imagedelete = false;
+  bool sounddelete = false;
+  late Uint8List uploadfile;
+  late Uint8List? uploadfile2;
+  bool scoreVisual = false;
 
+  String? _dropdown = '전체';
+  List<String> _dropdownList= ['전체','국어','수학','영어','과학','사회','한국사'];
   @override
   void initState() {
-    final as = Get.put(AnswerState());
-    super.initState();
-    for (int i=0; i<20; i++) {
-      _answerList.add('1');
-    }
-    _testCountController.text = '20';
+    Future.delayed(Duration.zero,()async{
 
-    if(widget.edit==true){
-      _answerList.clear();
-      print('asd: ${pickedFile} , ${pickedFile?.name}');
-      _testNameController.text= widget.category!;
-      _testPwController.text = widget.password!;
-      as.pdfUploadName.value = widget.pdfUploadName!;
-      _testCountController.text= '${widget.answerlength?.length}';
 
-      as.essayList1.value = List.generate(widget.answerlength!.length, (index) => '');
-      as.choiceList1.value = List.generate(widget.answerlength!.length, (index) => '');
+      final args = ModalRoute.of(context)!.settings.arguments as PdfUploadScreen?;
+      final as = Get.put(AnswerState());
+      as.pdfUploadName.value = []; // 문제 제목
+      as.pdfUploadName2.value = []; // 듣기 제목
 
-      for(int i = 0; i < widget.answerlength!.length; i ++){
-        _answerList.add(widget.answerlength![i]);
+      for (int i = 0; i < 20; i++) {
+        _answerList.add('1');
+        as.pdfUploadName.add('');
+        as.pdfUploadName2.add('');
       }
-      // a = widget.path!;
-      isfilePath='1';
-    }
+      _testCountController.text = '20';
+      _testCountController2.text = '100';
+       uploadfile2 = null;
+       /// 수정으로 들어올때
+      if (args?.edit == true) {
+        _answerList.clear();
+        as.pdfUploadName.clear();
+        as.pdfUploadName2.clear();
+        if(args?.scoreVisual=='true'){
+          scoreVisual = true;
+        }
+        else{
+          scoreVisual=false;
+        }
+        _dropdown = args!.subject;
+        _testNameController.text = args!.category!;
+        _testPwController.text = args.password!;
+        // as.pdfUploadName.value = args.pdfUploadName![0];
+        _testCountController.text = '${args.answerlength?.length}';
+        _testCountController2.text = args.countdown!;
+        _hasAudio = '${args.audio}';
+        as.essayList1.value =
+            List.generate(args.answerlength!.length, (index) => '');
+        as.choiceList1.value =
+            List.generate(args.answerlength!.length, (index) => '');
+        as.pdfUploadName.value =
+            List.generate(args.answerlength!.length, (index) => '');
+        as.pdfUploadName2.value =
+            List.generate(args.answerlength!.length, (index) => '');
+        for (int i = 0; i < args.answerlength!.length; i++) {
+          _answerList.add(args.answerlength![i]);
+        }
+        // a = args.path!;
+        isfilePath = '1';
+        isfilePath2 = '1';
+      }
+      setState(() {
+      });
+    });
+
+    super.initState();
   }
+
   @override
   void dispose() {
     super.dispose();
     _testNameController.dispose();
     _testPwController.dispose();
     _testCountController.dispose();
+    _testCountController2.dispose();
+
   }
 
   @override
   Widget build(BuildContext context) {
     final as = Get.put(AnswerState());
     final us = Get.put(UserState());
+    final args = ModalRoute.of(context)!.settings.arguments as PdfUploadScreen?;
+
     return GestureDetector(
-      onTap: (){
+      onTap: () {
         FocusScope.of(context).unfocus();
       },
-      child: Scaffold(
-        appBar: AppBar(backgroundColor: Colors.white, elevation: 0,
-          leading: IconButton(
-            icon: Icon(
-              Icons.arrow_back_ios_new,
-              color: Color(0xff6f7072),
-            ),
-            onPressed: () {
-              showComponentDialog(context, '문제 추가를 종료하겠습니까?', () {
-                Get.offAll(() => BottomNavigator());
-              });
-            },
-          ),
-          centerTitle: false,
-          title: Text(
-            '문제 추가', style: f21w700grey5,
-          ),
-          actions: [
-            GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () async {
-                  print('asd: ${pickedFile} , ${pickedFile?.name}');
-                  as.answer.clear();
-                  for (int i=0; i< _answerList.length; i++) {
-                    as.answer.add(_answerList[i]);
-                  }
-                  as.group.value = '';
-                  as.password.value = _testPwController.text;
-                  as.pdfCategory.value = _testNameController.text;
-                  as.pdfName.value = '${DateTime.now()}';
-                  as.pdfUploadName.value ='${pickedFile?.name}';
-                  as.teacher.value = '${us.userList[0].id}';
-                  as.path.value = '${pickedFile?.path}';
-
-                  if(_testNameController.text.trim().isEmpty==true||
-                  _testPwController.text.trim().isEmpty==true){
-                    showConfirmTapDialog(context, "제목 또는 비밀번호를 입력해주세요", () {
-                      Get.back();
-                    });
-                  }
-                  else if(pickedFile==null&&isfilePath==''){
-                    showConfirmTapDialog(context, "파일을 등록해주세요", () {
-                      Get.back();
-                    });
-                  }
-                  else{
-                  showComponentDialog(context,widget.edit==true?'수정하시겠습니까?':'업로드 하시겠습니까?', () async{
-                      Get.back();
-                      if(widget.edit==true){
-                        await _updateTest('${widget.docId}');
-                        showConfirmTapDialog(context, '업로드가 완료되었습니다.', () {
-                          Get.offAll(()=>BottomNavigator());
-                        });
-                      }
-                      else{
-                      await firebaseAnswerUpload(uploadTask);
-                      showConfirmTapDialog(context, "업로드가 완료되었습니다.", () {
-                        Get.offAll(() => BottomNavigator());
-                      });
-                    }}
-                  );
-                  // await firebaseAnswerUpload(uploadTask);
-                  // // await _uploadFile('12345', as.docId.value);
-                  //
-                }},
-                child: Container(padding: const EdgeInsets.only(right: 28),
-                  child: const Center(child: Text('저장', style: f16w700primary,)),))
-          ],
-        ),
-        body: SingleChildScrollView(
-          physics: const ClampingScrollPhysics(),
-          child: Container(width: Get.width,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
+      child: WillPopScope(
+        onWillPop: () async{
+          return Future(() {
+            showComponentDialog(context, '문제추가를 종료하시겠습니까?', () {
+              Get.back();
+              Get.back();
+            }
+            );
+            return true;
+          });
+        },
+        child: Scaffold(backgroundColor: backColor,
+          appBar: AppBar(
+            backgroundColor: nowColor,
+            elevation: 0,
+            // leading: IconButton(
+            //   icon: Icon(
+            //     Icons.arrow_back_ios_new,
+            //     color: Color(0xff6f7072),
+            //   ),
+            //   onPressed: () {
+            //     showComponentDialog(context, '작성을 취소하시겠습니까?', () {
+            //       Get.offAllNamed(MainScreen.id);
+            //     });
+            //   },
+            // ),
+            centerTitle: false,
+            automaticallyImplyLeading: false,
+            title: Row(
               children: [
-                const SizedBox(height: 40,),
-                Container(padding: EdgeInsets.symmetric(horizontal: 24), child: Text('시험명', style: f18w400,)),
-                const SizedBox(height: 10,),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 24),
-                  child: TextFormFields(
-                    controller: _testNameController,
-                    hintText: '시험 명을 입력해주세요',
-                    surffixIcon: '0',
-                    obscureText: true,
-                  ),
-
-                  // TextFormField(
-                  //   controller: _testNameController,
-                  //   textAlign: TextAlign.start,
-                  //   style: TextStyle(
-                  //       fontSize: 17,
-                  //       fontFamily: 'NotoSansKr',
-                  //       color: Color(0xff292929)),
-                  //   enabled: true,
-                  //   keyboardType: TextInputType.text,
-                  //   decoration: InputDecoration(
-                  //       enabledBorder: UnderlineInputBorder(
-                  //         borderSide: BorderSide(color: Colors.blueGrey[200]!),
-                  //       ),
-                  //       focusedBorder: UnderlineInputBorder(
-                  //         borderSide: BorderSide(color: Colors.black),
-                  //       ),
-                  //       prefixIconConstraints: BoxConstraints(minWidth: 23),
-                  //       hintText: '시험 명을 입력해주세요',
-                  //       hintStyle: TextStyle(
-                  //           fontSize: 24,
-                  //           fontWeight: FontWeight.w500,
-                  //           fontFamily: 'NotoSansKr',
-                  //           color: Colors.blueGrey[200])),
-                  // ),
-                  width: Get.width,
+                SvgPicture.asset(
+                  'assets/logo.svg',
+                  width: (kIsWeb && (Get.width * 0.2 <= 171)) ? 16 : 20,
+                  height: (kIsWeb && (Get.width * 0.2 <= 171)) ? 16 : 20,
                 ),
-                const SizedBox(height: 16,),
-
-                Container(padding: EdgeInsets.symmetric(horizontal: 24), child: Text('문제 파일', style: f18w400,)),
-                const SizedBox(height: 10,),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 24),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      pickedFile?.name != null
-                          ? Container(
-                              decoration: BoxDecoration(
-                                borderRadius:
-                                    BorderRadius.all(Radius.circular(8.0)),
-                                color: textFormColor,
-                              ),
-                              padding: const EdgeInsets.symmetric(vertical: 18.5, horizontal: 20),
-                              width: Get.width * 0.6,
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Flexible(
-                                    child: Container(
-                                      padding: new EdgeInsets.only(right: 13.0),
-                                      child: Text(
-                                        '${pickedFile?.name}',
-                                        style: f16w400el
-                                      ),
-                                    ),
-                                  ),
-                                  GestureDetector(
-                                    onTap: () {
-                                      pickedFile = null;
-                                      setState(() {});
-                                    },
-                                    child: Icon(
-                                      Icons.close,
-                                      size: 20,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )
-                          : Container(
-                              decoration: BoxDecoration(
-                                borderRadius:
-                                BorderRadius.all(Radius.circular(8.0)),
-                                color: textFormColor,
-                              ),
-                              padding: const EdgeInsets.symmetric(vertical: 18.5, horizontal: 20),
-                              width: Get.width * 0.6,
-                              child: widget.edit==true?Text(widget.pdfUploadName!):Text('시험 문제를 추가해 주세요', style: f16w400grey8,),
-                            ),
-                      SizedBox(width: 4,),
-                      widget.edit==true
-                          ? Container(
-                        width: Get.width * 0.25,
-                        child: ElevatedButton(
-                            onPressed: () async {
-                            },
-                            style: ButtonStyle(
-                              shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
-                                  RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8.0),
-                                  )),
-                              padding: MaterialStateProperty.all<EdgeInsets>(
-                                  EdgeInsets.symmetric(vertical: 18.5, horizontal: 20)),
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                  textFormColor),
-                              splashFactory: NoSplash.splashFactory,
-                              elevation: MaterialStateProperty.all<double>(0.0),
-                            ),
-                            child: Text('찾아보기', style: f16w700primary)),
-                      )
-                          : Container(
-                        width: Get.width * 0.25,
-                        child: ElevatedButton(
-                            onPressed: () async {
-                              FilePickerResult? result =
-                                  await FilePicker.platform.pickFiles(
-                                allowedExtensions: [
-                                  'pdf',
-                                ],
-                                type: FileType.custom,
-                              );
-
-                              if (result == null) return;
-                              pickedFile = result.files.first;
-                              if(pickedFile != null){
-                                isfilePath ='11';
-                              }
-                              setState(() {
-                              });
-                            },
-                            style: ButtonStyle(
-                              shape:
-                                  MaterialStateProperty.all<RoundedRectangleBorder>(
-                                      RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8.0),
-                              )),
-                              padding: MaterialStateProperty.all<EdgeInsets>(
-                                  EdgeInsets.symmetric(vertical: 18.5, horizontal: 20)),
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                  textFormColor),
-                              splashFactory: NoSplash.splashFactory,
-                              elevation: MaterialStateProperty.all<double>(0.0),
-                            ),
-                            child: Text('찾아보기', style: f16w700primary)),
-                      ),
-                    ],
-                  ),
+                SizedBox(
+                  width: 8,
                 ),
-                const SizedBox(height: 16,),
-
-                Container(padding: EdgeInsets.symmetric(horizontal: 24), child: Text('문항수', style: f18w400,)),
-                const SizedBox(height: 10,),
-                widget.edit==true
-                    ? Container(
-                  padding: EdgeInsets.symmetric(horizontal: 24),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                          decoration: BoxDecoration(
-                            borderRadius:
-                            BorderRadius.all(Radius.circular(8.0)),
-                            color: testCountColor,
-                          ),
-                          width: Get.width * 0.6,
-                          child: TextFormField(
-                            controller: _testCountController,
-                            style: f16w400,
-                            textAlign: TextAlign.center,
-                            decoration: InputDecoration(
-                              border: InputBorder.none,
-                              prefixIcon: InkWell(
-                                onTap: () {
-
-                                },
-                                child: Material(
-                                  elevation: 0.0,
-                                  color: textFormColor,
-                                  shadowColor: textFormColor,
-                                  borderRadius: BorderRadius.only(
-                                    topLeft: Radius.circular(8.0),
-                                    bottomLeft: Radius.circular(8.0),
-                                  ),
-                                  child: Container(width: 40, height: Get.height*0.07,
-                                    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                                    child: SvgPicture.asset(
-                                      'assets/icon/minus.svg',
-                                      height: 20,
-                                      width: 20,
-                                      color: teacherColor,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              suffixIcon: InkWell(
-                                onTap: () {
-
-                                },
-                                child: Material(
-                                  elevation: 0.0,
-                                  color: textFormColor,
-                                  shadowColor: textFormColor,
-                                  borderRadius: BorderRadius.only(
-                                    topRight: Radius.circular(8.0),
-                                    bottomRight: Radius.circular(8.0),
-                                  ),
-                                  child: Container(height: Get.height*0.07,
-                                    padding: const EdgeInsets.symmetric(horizontal: 18),
-                                    child: SvgPicture.asset(
-                                      'assets/icon/plus.svg',
-                                      height: 20,
-                                      width: 20,
-                                      color: teacherColor,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              hintText: '20',
-                              hintStyle: f16w400grey8,
-                            ),
-                          )
-                      ),
-                      SizedBox(width: 4,),
-                      Container(
-                        width: Get.width * 0.25,
-                        child: ElevatedButton(
-                            onPressed: () async {
-                            },
-                            style: ButtonStyle(
-                              shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
-                                  RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8.0),
-                                  )),
-                              padding: MaterialStateProperty.all<EdgeInsets>(
-                                  EdgeInsets.symmetric(vertical: 18.5, horizontal: 20)),
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                  textFormColor),
-                              splashFactory: NoSplash.splashFactory,
-                              elevation: MaterialStateProperty.all<double>(0.0),
-                            ),
-                            child: Text('확인', style: f16w700primary)),
-                      )
-                    ],
-                  ),
-                )
-                    : Container(
-                  padding: EdgeInsets.symmetric(horizontal: 24),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                          decoration: BoxDecoration(
-                            borderRadius:
-                            BorderRadius.all(Radius.circular(8.0)),
-                            color: testCountColor,
-                          ),
-                        width: Get.width * 0.6,
-                        child: TextFormField(
-                          controller: _testCountController,
-                          style: f16w400,
-                          textAlign: TextAlign.center,
-                          decoration: InputDecoration(
-                            border: InputBorder.none,
-                            prefixIcon: InkWell(
-                              onTap: () {
-                                _answerList.removeLast();
-                                setState(() {
-                                  // final x = _testCountController.text.obs;
-                                  ///_testCountController -
-                                  _testCountController.text =
-                                      (_testCountController.text != '0' ?
-                                      int.parse(_testCountController.text) - 1 : 0).toString();
-                                });
-                              },
-                              child: Material(
-                                elevation: 0.0,
-                                color: textFormColor,
-                                shadowColor: textFormColor,
-                                borderRadius: BorderRadius.only(
-                                  topLeft: Radius.circular(8.0),
-                                  bottomLeft: Radius.circular(8.0),
-                                ),
-                                child: Container(width: 40, height: Get.height*0.07,
-                                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
-                                  child: SvgPicture.asset(
-                                    'assets/icon/minus.svg',
-                                    height: 20,
-                                    width: 20,
-                                    color: teacherColor,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            suffixIcon: InkWell(
-                              onTap: () {
-                                _answerList.add('1');
-                                    setState(() {
-                                      ///_testCountController +
-                                      _testCountController.text = (int.parse(_testCountController.text) + 1).toString();
-                                    });
-                              },
-                              child: Material(
-                                elevation: 0.0,
-                                color: textFormColor,
-                                shadowColor: textFormColor,
-                                borderRadius: BorderRadius.only(
-                                  topRight: Radius.circular(8.0),
-                                  bottomRight: Radius.circular(8.0),
-                                ),
-                                child: Container(height: Get.height*0.07,
-                                  padding: const EdgeInsets.symmetric(horizontal: 18),
-                                  child: SvgPicture.asset(
-                                    'assets/icon/plus.svg',
-                                    height: 20,
-                                    width: 20,
-                                    color: teacherColor,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            hintText: '20',
-                            hintStyle: f16w400grey8,
-                          ),
-                        )
-                      ),
-                      SizedBox(width: 4,),
-                      Container(
-                        width: Get.width * 0.25,
-                        child: ElevatedButton(
-                            onPressed: () async {
-                              try {
-                                if(int.tryParse(_testCountController.text) != null) {
-                                  if (int.parse(_testCountController.text) < _answerList.length) {
-                                    _answerList.removeRange(int.parse(_testCountController.text), _answerList.length);
-                                  }
-                                  if (int.parse(_testCountController.text) > _answerList.length) {
-                                    int diff= int.parse(_testCountController.text) - _answerList.length;
-                                    for(int i=0; i< diff; i++){
-                                      _answerList.add('1');
-                                    }
-                                  }
-                                  setState(() {});
-                                }
-                              }catch(e){ print(e);}
-                            },
-                            style: ButtonStyle(
-                              shape:
-                              MaterialStateProperty.all<RoundedRectangleBorder>(
-                                  RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8.0),
-                                  )),
-                              padding: MaterialStateProperty.all<EdgeInsets>(
-                                  EdgeInsets.symmetric(vertical: 18.5, horizontal: 20)),
-                              backgroundColor: MaterialStateProperty.all<Color>(
-                                  textFormColor),
-                              splashFactory: NoSplash.splashFactory,
-                              elevation: MaterialStateProperty.all<double>(0.0),
-                            ),
-                            child: Text('확인', style: f16w700primary)),
-                      )
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16,),
-
-                Container(padding: EdgeInsets.symmetric(horizontal: 24), child: Text('비밀번호', style: f18w400,)),
-                const SizedBox(height: 10,),
-                Container(
-                  padding: EdgeInsets.symmetric(horizontal: 24),
-                  child: TextFormFields(
-                    controller: _testPwController,
-                    hintText: '비밀번호를 입력해 주세요',
-                    surffixIcon: '1',
-                    obscureText: _obscureText.isTrue,
-                    onTap: () {
-                      setState(() {
-                        _obscureText.value = !_obscureText.value;
-                      });
-                    },
-                  ),
-                ),
-                const SizedBox(height: 30,),
-
-                const Divider(height: 1, color: cameraBackColor,),
-                const SizedBox(height: 30,),
-                Container(padding: EdgeInsets.symmetric(horizontal: 24), child: Text('답안', style: f18w400,)),
-                const SizedBox(height: 10,),
-                Container(padding: EdgeInsets.symmetric(horizontal: 24),
-                  child: ListView.builder(
-                    itemCount: _answerList.length,
-                    shrinkWrap: true,
-                    physics: const ClampingScrollPhysics(),
-                    itemBuilder: (context, index) {
-                      return widget.edit==true?Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text('${index+1} :', style: f18w700,),
-                              const SizedBox(width: 12,),
-                              Container(
-                                width: Get.width * 0.7,
-                                padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                                decoration: BoxDecoration(
-                                  color: textFormColor,
-                                  borderRadius: BorderRadius.circular(4),
-                                  border: Border.all(color: Color(0xffE9E9E9), style: BorderStyle.solid, width: 0.80),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(8.0),
-                                  child: Text('${_answerList[index]}',style: f16w500,),
-                                )
-
-
-                                // DropdownButton<String>(
-                                //   dropdownColor: textFormColor,
-                                //   isExpanded: true,
-                                //   value: _answerList[index],
-                                //   icon: Icon(Icons.arrow_drop_down),
-                                //   iconSize: 30,
-                                //   elevation: 16,
-                                //   hint: Text(
-                                //       '답안을 선택해 주세요',
-                                //       style: f18w400
-                                //   ),
-                                //   style: const TextStyle(color: Colors.black),
-                                //   underline: Container(
-                                //     height: 10,
-                                //     color: Colors.transparent,
-                                //   ),
-                                //   onChanged: (newValue) {
-                                //   },
-                                //   items: <String>['1', '2', '3', '4', '5'].map<DropdownMenuItem<String>>((String val) {
-                                //     // ignore: missing_required_param
-                                //     return DropdownMenuItem<String>(
-                                //       value: val,
-                                //       child: Text(
-                                //           val,
-                                //           style: f16w500
-                                //       ),
-                                //     );
-                                //   }).toList(),
-                                // ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 10,),
-                        ],
-                      )
-                          :Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text('${index+1} :', style: f18w700,),
-                              const SizedBox(width: 12,),
-                              Container(
-                                width: Get.width * 0.7,
-                                padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                                decoration: BoxDecoration(
-                                  color: textFormColor,
-                                  borderRadius: BorderRadius.circular(4),
-                                  border: Border.all(color: Color(0xffE9E9E9), style: BorderStyle.solid, width: 0.80),
-                                ),
-                                child: DropdownButton<String>(
-                                  dropdownColor: textFormColor,
-                                  isExpanded: true,
-                                  value: _answerList[index],
-                                  icon: Icon(Icons.arrow_drop_down),
-                                  iconSize: 30,
-                                  elevation: 16,
-                                  hint: Text(
-                                      '답안을 선택해 주세요',
-                                      style: f18w400
-                                  ),
-                                  style: const TextStyle(color: Colors.black),
-                                  underline: Container(
-                                    height: 10,
-                                    color: Colors.transparent,
-                                  ),
-                                  onChanged: (newValue) {
-                                    setState(() {
-                                      _answerList[index] = newValue!;
-                                    });
-                                  },
-                                  items: <String>['1', '2', '3', '4', '5'].map<DropdownMenuItem<String>>((String val) {
-                                    // ignore: missing_required_param
-                                    return DropdownMenuItem<String>(
-                                      value: val,
-                                      child: Text(
-                                          val,
-                                          style: f16w500
-                                      ),
-                                    );
-                                  }).toList(),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 10,),
-                        ],
-                      );
-                    },),
-                ),
-                const SizedBox(height: 40,),
+                kIsWeb && (Get.width * 0.2 <= 171) ? Container() : Text('문제추가')
               ],
+            ),
+          ),
+          body: SingleChildScrollView(
+            physics: const ClampingScrollPhysics(),
+            child: Center(
+              child: Column(
+                children: [
+                  Container(
+                    width: Get.width * 0.8,
+                    padding: const EdgeInsets.symmetric(horizontal: 30),
+                    child: ScrollConfiguration(
+                      behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
+                      child: SingleChildScrollView(
+                        physics: const ClampingScrollPhysics(),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(
+                              height: 40,
+                            ),
+                            Row(children: [
+                              Text('문제추가 - 한번에 등록', style: f32w700,),
+                              Spacer(),
+                              GestureDetector(
+                                onTap: () {
+                                  showComponentDialog(context, '작성을 취소하시겠습니까?', () {
+                                    Get.back();
+                                    Get.back();
+                                    // Get.offAllNamed(BottomNavigator.id);
+                                    // Navigator.pushNamedAndRemoveUntil(context, LoginMainScreen.id, (route) => false);
+                                  });
+                                  },
+                                child: Container(
+                                  padding: const EdgeInsets.all(12.0),
+                                  child: Center(child: Text('나가기', style: f16w700,)),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: const Color(0xff535353),
+                                    ),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                              ),
+                              args?.edit==true&&args?.state !='임시'
+                                  ? Container()
+                                  : SizedBox(width: 12,),
+                              args?.edit==true&&args?.state !='임시'
+                                  ? Container()
+                                  : GestureDetector(
+                                onTap: () async {
+                                      as.answer.clear();
+                                      for (int i = 0; i < _answerList.length; i++) {
+                                        as.answer.add(_answerList[i]);
+                                      }
+                                      as.group.value = '';
+                                      as.password.value = _testPwController.text;
+                                      as.pdfCategory.value = _testNameController.text;
+                                      as.pdfName.value = '${DateTime.now()}';
+                                      as.pdfUploadName[0] = '${pickedFile?.name}';
+                                      as.pdfUploadName2[0] = '${pickedFile2?.name}';
+                                      as.teacher.value = '${us.userList[0].id}';
+                                      as.path.value = 'onweb';
+                                      if(pickedFile?.name==null){
+                                        as.pdfUploadName[0] = '${args?.pdfUploadName![0]}';
+                                      }
+                                      if(pickedFile2?.name==null){
+                                        as.pdfUploadName2[0] = '${args?.pdfUploadName2![0]}';
+                                      }
+                                      if (_testNameController.text.trim().isEmpty == true ||
+                                          _testPwController.text.trim().isEmpty == true) {
+                                        showOnlyConfirmDialog(context, "제목 또는 비밀번호를 입력해주세요");
+                                      } else if (pickedFile == null && isfilePath == ''||as.pdfUploadName[0]=='') {
+                                        showOnlyConfirmDialog(context, "파일을 등록해주세요");
+                                      } else {
+                                        showComponentDialog(context,
+                                            args?.edit == true ? '수정하시겠습니까?' : '임시저장 하시겠습니까?',
+                                                () async {
+                                              Get.back();
+                                              /// 임시저장 할때
+                                              if (args?.edit == true) {
+                                                await _updateTestSave('${args!.docId}');
+                                                await _updateTimer('${args.docId}');
+                                                showConfirmTapDialog(context, '업로드가 완료되었습니다.', () {
+                                                  // Get.offAll(() => BottomNavigator());
+                                                  Get.back();
+                                                  Get.back();
+                                                });
+                                              }
+                                              /// 처음 임시저장 할 때
+                                              else {
+                                                if(pickedFile2==null){
+                                                  as.pdfUploadName2[0] = '';
+                                                }
+                                                Future.delayed(Duration.zero,()async{
+                                                  await firebaseAnswerUploadSave(uploadfile,uploadfile2,_testCountController2.text,scoreVisual,_dropdown!);
+                                                });
+                                              }
+                                            });
+                                        // await firebaseAnswerUpload(uploadTask);
+                                        // // await _uploadFile('12345', as.docId.value);
+                                        //
+                                      }
+
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.all(12.0),
+                                  child: Center(child: Text('임시저장', style: f16w700,)),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: const Color(0xff535353),
+                                    ),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(width: 12,),
+                              GestureDetector(
+                                onTap: () async {
+                                  as.answer.clear();
+                                  for (int i = 0; i < _answerList.length; i++) {
+                                    as.answer.add(_answerList[i]);
+                                  }
+                                  as.group.value = '';
+                                  as.password.value = _testPwController.text;
+                                  as.pdfCategory.value = _testNameController.text;
+                                  as.pdfName.value = '${DateTime.now()}';
+                                  as.pdfUploadName[0] = '${pickedFile?.name}';
+                                  as.pdfUploadName2[0] = '${pickedFile2?.name}';
+                                  as.teacher.value = '${us.userList[0].id}';
+                                  as.path.value = 'onweb';
+                                  if(pickedFile?.name==null){
+                                    as.pdfUploadName[0] = '${args?.pdfUploadName![0]}';
+                                  }
+                                  if(pickedFile2?.name==null){
+                                    as.pdfUploadName2[0] = '${args?.pdfUploadName2![0]}';
+                                  }
+                                  if (_testNameController.text.trim().isEmpty == true ||
+                                      _testPwController.text.trim().isEmpty == true) {
+                                    showOnlyConfirmDialog(context, "제목 또는 비밀번호를 입력해주세요");
+                                  } else if (pickedFile == null && isfilePath == ''||as.pdfUploadName[0]=='') {
+                                    showOnlyConfirmDialog(context, "파일을 등록해주세요");
+                                  } else {
+                                    showComponentDialog(context,
+                                        args?.edit == true ? '수정하시겠습니까?' : '업로드 하시겠습니까?',
+                                            () async {
+                                          Get.back();
+                                          /// 수정했을때
+                                          if (args?.edit == true) {
+                                            if(args?.state=='임시'){
+                                              _updateUpload('${args?.docId}');
+                                              showConfirmTapDialog(context, "업로드가 완료되었습니다.", () {
+                                                // Get.offAll(() => BottomNavigator());
+                                                Get.offNamedUntil(BottomNavigator.id, (route) => true);
+                                              });
+                                            }
+                                            else {
+                                              await _updateTest('${args!.docId}');
+                                              await _updateTimer('${args.docId}');
+                                              showConfirmTapDialog(
+                                                  context, '업로드가 완료되었습니다.', () {
+                                                // Get.offAll(() => BottomNavigator());
+                                                Get.offNamedUntil(BottomNavigator.id, (route) => true);
+                                              });
+                                            }
+                                          }
+                                          /// 처음 올렸을 때
+                                          else {
+                                            if(pickedFile2 ==null){
+                                              as.pdfUploadName2[0] = '';
+                                            }
+                                            await firebaseAnswerUpload(uploadfile,uploadfile2,_testCountController2.text,scoreVisual,_dropdown!);
+                                            showConfirmTapDialog(context, "업로드가 완료되었습니다.", () {
+                                              // Get.offAll(() => BottomNavigator());
+                                              Get.offNamedUntil(BottomNavigator.id, (route) => true);
+                                            });
+                                          }
+                                        });
+                                    // await firebaseAnswerUpload(uploadTask);
+                                    // // await _uploadFile('12345', as.docId.value);
+                                    //
+                                  }
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.all(12.0),
+                                  child: Center(child: Text('저장', style: f16Whitew700,)),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xff070707),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                              ),
+                            ],),
+                            const SizedBox(height: 30,),
+                            Container(
+                              width: Get.width,
+                              child: TextFormFields(
+                                controller: _testNameController,
+                                hintText: '시험 명을 입력해주세요',
+                                surffixIcon: '0',
+                                obscureText: true,
+                              ),
+                            ),
+                            const SizedBox(
+                              height: 40,
+                            ),
+                            SizedBox(
+                              width: Get.width,
+                              height: 1,
+                              child: Divider(
+                                thickness: 1,
+                                color: const Color(0xffDADADA),
+                              ),
+                            ),
+                            const SizedBox(
+                              height: 40,
+                            ),
+                            Text('과목명', style: f18w400,),
+                            SizedBox(height: 10),
+                            Container(
+                              width: Get.width*0.2,
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(8),
+                                    color: Color(0xffebebeb)),
+                                child: Padding(
+                                  padding: ph20v14,
+                                  child: DropdownButton<String>(
+                                    focusColor: Colors.white,
+                                    isDense: true,
+                                    isExpanded: true,
+                                    underline: Container(),
+                                    icon: Icon(
+                                      Icons.keyboard_arrow_down,
+                                      color: Color(0xff535353),
+                                    ),
+                                    value: _dropdown,
+                                    //elevation: 5,
+                                    style: TextStyle(color: Colors.white),
+                                    iconEnabledColor: Colors.black,
+                                    items: _dropdownList.map((value){
+                                      return DropdownMenuItem(
+                                          value: value,
+                                          child: Text(value,style: f18w400,));
+                                    }).toList(),
+                                    onChanged: (v) {
+                                      setState(() {
+                                        _dropdown = v;
+                                      });
+                                    },
+                                  ),
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: 10),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                              Container(
+                                width: Get.width * 0.3,
+                                child: Column(mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text('문제 파일', style: f18w400,),
+                                    const SizedBox(height: 10,),
+                                    args?.edit == true && args?.state !='임시'
+                                        ? Container(
+                                        width: Get.width * 0.2,
+                                        height: 50,
+                                          child: ElevatedButton(
+                                              onPressed: () async {},
+                                              style: ButtonStyle(
+                                                shape: MaterialStateProperty.all<
+                                                    RoundedRectangleBorder>(
+                                                    RoundedRectangleBorder(
+                                                      borderRadius:
+                                                      BorderRadius.circular(8.0),
+                                                    )),
+                                                padding:
+                                                MaterialStateProperty.all<EdgeInsets>(
+                                                    EdgeInsets.symmetric(
+                                                        vertical: 18.5,
+                                                        horizontal: 100)),
+                                                backgroundColor: MaterialStateProperty.all<Color>(textFormColor),
+                                                splashFactory: NoSplash.splashFactory,
+                                                elevation: MaterialStateProperty.all<double>(0.0),
+                                              ),
+                                              child: Text('찾아보기', style: f16w700primary)),
+                                        )
+                                        : Container(
+                                      width: Get.width * 0.2,
+                                      height: 50,
+                                          child: ElevatedButton(
+                                              onPressed: () async {
+                                                FilePickerResult? result =
+                                                await FilePicker.platform.pickFiles(
+                                                  allowedExtensions: ['pdf',],
+                                                  type: FileType.custom,
+                                                );
+                                                if (result == null) return;
+                                                pickedFile = result.files.first;
+                                                uploadfile = result.files.single.bytes!;
+                                                if (pickedFile != null) {
+                                                  isfilePath = '11';
+                                                }
+                                                setState(() {});
+                                              },
+                                              style: ButtonStyle(
+                                                shape: MaterialStateProperty.all<
+                                                    RoundedRectangleBorder>(
+                                                    RoundedRectangleBorder(
+                                                      borderRadius:
+                                                      BorderRadius.circular(8.0),
+                                                    )),
+                                                padding:
+                                                MaterialStateProperty.all<EdgeInsets>(
+                                                    EdgeInsets.symmetric(
+                                                        vertical: 18.5,
+                                                        horizontal: 100)),
+                                                backgroundColor: MaterialStateProperty.all<Color>(textFormColor),
+                                                splashFactory: NoSplash.splashFactory,
+                                                elevation: MaterialStateProperty.all<double>(0.0),
+                                              ),
+                                              child: Text('찾아보기', style: f16w700primary)),
+                                        ),
+                                    const SizedBox(height: 10,),
+                                    pickedFile?.name != null
+                                        ? Container(
+                                              height: 54,
+                                              width: 180,
+                                              decoration: BoxDecoration(
+                                                border: Border.all(color: const Color(0xffDADADA),),
+                                                borderRadius: BorderRadius.circular(8),
+                                              ),
+                                              child: Row(mainAxisAlignment: MainAxisAlignment.center,
+                                                children: [
+                                                  Flexible(
+                                                    child: Text(
+                                                      '${pickedFile?.name}',
+                                                      style: f16w400grey8,
+                                                      textAlign: TextAlign.center,
+                                                    ),
+                                                  ),
+                                                  GestureDetector(
+                                                    onTap: () {
+                                                      pickedFile = null;
+                                                      setState(() {});
+                                                    },
+                                                    child: Icon(Icons.close, size: 20,),
+                                                  ),
+                                                ],
+                                              ),
+                                            )
+                                        : args?.edit == true &&args?.state !='임시'
+                                        ? Container(
+                                        width: 180,
+                                        height: 39,
+                                                  decoration: BoxDecoration(
+                                                    border: Border.all(
+                                                      color: const Color(0xffDADADA),
+                                                    ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(8),
+                                                  ),
+                                                  child: Text(
+                                                    args?.pdfUploadName![0],
+                                                    style: f16w400grey8,
+                                                    textAlign: TextAlign.center,
+                                                  ))
+                                        : args?.state=='임시'
+                                        ? imagedelete==true?Container()
+                                        : Container(
+                                        width: 180,
+                                         height: 39,
+                                      decoration: BoxDecoration(
+                                        border: Border.all(color: const Color(0xffDADADA),),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Flexible(
+                                            child: Text(
+                                              '${args?.pdfUploadName![0]}',
+                                              style: f16w400grey8,
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          ),
+                                          GestureDetector(
+                                            onTap: () {
+                                              //임시였을때 지우는곳
+                                              args?.pdfUploadName![0] ='';
+                                              imagedelete = true;
+                                              setState(() {});
+                                            },
+                                            child: Icon(Icons.close, size: 20,),
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                        : Container(),
+                                    const SizedBox(height: 16,),
+
+                                    Text('듣기 파일', style: f18w400,),
+                                    const SizedBox(height: 10,),
+                                    args?.edit == true
+                                        ? args?.state=='임시'
+                                        ? Container(
+                                      width:Get.width * 0.2,
+                                      height: 50,
+                                          child: ElevatedButton(
+                                          onPressed: () async {
+                                            FilePickerResult? result =
+                                            await FilePicker.platform.pickFiles(
+                                              type: FileType.audio,
+                                            );
+                                            if (result == null) return;
+                                            pickedFile2 = result.files.first;
+                                            uploadfile2 = result.files.single.bytes!;
+                                            if (pickedFile2 != null) {
+                                              isfilePath2 = '11';
+                                            }
+                                            setState(() {});
+                                          },
+                                          style: ButtonStyle(
+                                            shape: MaterialStateProperty.all<
+                                                RoundedRectangleBorder>(
+                                                RoundedRectangleBorder(
+                                                  borderRadius:
+                                                  BorderRadius.circular(8.0),
+                                                )),
+                                            padding:
+                                            MaterialStateProperty.all<EdgeInsets>(
+                                                EdgeInsets.symmetric(
+                                                    vertical: 18.5,
+                                                    horizontal: 100)),
+                                            backgroundColor: MaterialStateProperty.all<Color>(textFormColor),
+                                            splashFactory: NoSplash.splashFactory,
+                                            elevation: MaterialStateProperty.all<double>(0.0),
+                                          ),
+                                          child: Text('찾아보기', style: f16w700primary)),
+                                    )
+                                        : Container(height: 50,
+                                          child: ElevatedButton(
+                                          onPressed: () async {},
+                                          style: ButtonStyle(
+                                            shape: MaterialStateProperty.all<
+                                                RoundedRectangleBorder>(
+                                                RoundedRectangleBorder(
+                                                  borderRadius:
+                                                  BorderRadius.circular(8.0),
+                                                )),
+                                            padding:
+                                            MaterialStateProperty.all<EdgeInsets>(
+                                                EdgeInsets.symmetric(
+                                                    vertical: 18.5,
+                                                    horizontal: 100)),
+                                            backgroundColor: MaterialStateProperty.all<Color>(textFormColor),
+                                            splashFactory: NoSplash.splashFactory,
+                                            elevation: MaterialStateProperty.all<double>(0.0),
+                                          ),
+                                          child: Text('찾아보기', style: f16w700primary)),
+                                        )
+                                        : Container(
+                                      width:Get.width * 0.2,
+                                      height: 50,
+                                          child: ElevatedButton(
+                                          onPressed: args?.edit == true  ?  null : () async {
+                                            FilePickerResult? result =
+                                            await FilePicker.platform.pickFiles(
+                                              type: FileType.audio,
+                                            );
+                                            if (result == null) return;
+                                            pickedFile2 = result.files.first;
+                                            uploadfile2 = result.files.single.bytes!;
+
+                                            setState(() {});
+                                          },
+                                          style: ButtonStyle(
+                                            shape: MaterialStateProperty.all<
+                                                RoundedRectangleBorder>(
+                                                RoundedRectangleBorder(
+                                                  borderRadius:
+                                                  BorderRadius.circular(8.0),
+                                                )),
+                                            padding:
+                                            MaterialStateProperty.all<EdgeInsets>(
+                                                EdgeInsets.symmetric(
+                                                    vertical: 18.5,
+                                                    horizontal: 100)),
+                                            backgroundColor: MaterialStateProperty.all<Color>(textFormColor),
+                                            splashFactory: NoSplash.splashFactory,
+                                            elevation: MaterialStateProperty.all<double>(0.0),
+                                          ),
+                                          child: Text('찾아보기', style: f16w700primary)),
+                                        ),
+                                    const SizedBox(height: 10,),
+                                    pickedFile2?.name != null
+                                        ? Container(
+                                        height: 54,
+                                        width: 180,
+                                      decoration: BoxDecoration(
+                                        border: Border.all(color: const Color(0xffDADADA),),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            '${pickedFile2?.name}',
+                                            style: f16w500,
+                                            textAlign: TextAlign.center,
+                                          ),
+                                          GestureDetector(
+                                            onTap: () {
+                                              pickedFile2 = null;
+                                              setState(() {});
+                                            },
+                                            child: Icon(
+                                              Icons.close,
+                                              size: 20,
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                    )
+                                        : args?.edit == true && args?.state!='임시'
+                                        ? args?.pdfUploadName2![0] ==''?Container():
+                                    Container(
+                                      height: 54,
+                                      width: 180,
+                                      decoration: BoxDecoration(
+                                        border: Border.all(color: const Color(0xffDADADA),),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            '${args?.pdfUploadName2![0]}',
+                                            style: f16w500,
+                                            textAlign: TextAlign.center,
+                                          ),
+
+                                        ],
+                                      ),
+                                    )
+                                        : args?.pdfUploadName2![0] ==''?Container():
+                                    args?.state=='임시'?
+                                      sounddelete==false?
+                                    Container(
+                                        height: 54,
+                                        width: 180,
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color: const Color(0xffDADADA),
+                                          ),
+                                          borderRadius:
+                                          BorderRadius.circular(8),
+                                        ),
+                                        child:
+                                         // Text(args?.pdfUploadName2![0],style: f16w400grey8,textAlign: TextAlign.center,),
+                                          Row(
+                                          mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(
+                                              '${args?.pdfUploadName2![0]}',
+                                              style: f16w400grey8,
+                                              textAlign: TextAlign.center,
+                                            ),
+                                            GestureDetector(
+                                              onTap: () {
+                                                sounddelete = true;
+                                                // pickedFile2 = null;
+                                                args?.pdfUploadName2![0]='';
+                                                setState(() {});
+                                              },
+                                              child: Icon(
+                                                Icons.close,
+                                                size: 20,
+                                              ),
+                                            )
+                                          ],
+                                        )
+                                    ) : Container():Container(),
+                                    Container(),
+                                    const SizedBox(height: 16,),
+
+                                    Text('문항 수', style: f18w400,),
+                                    const SizedBox(height: 10,),
+                                    Container(
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(8.0)),
+                                          color: testCountColor,
+                                        ),
+                                        width: Get.width * 0.2,
+                                        child: TextFormField(
+                                          controller: _testCountController,
+                                          textAlign: TextAlign.center,
+                                          enabled: args?.edit == true && args?.state !='임시'
+                                              ? false
+                                              : args?.state =='임시'
+                                              ? true
+                                              : true,
+                                          style: f16w400,
+                                          onFieldSubmitted:
+                                          args?.state== '완료' ? null
+                                              : (v) async {
+                                            try {
+                                              if (int.tryParse(
+                                                  _testCountController
+                                                      .text) !=
+                                                  null) {
+                                                if (int.parse(
+                                                    _testCountController
+                                                        .text) <
+                                                    _answerList.length) {
+                                                  _answerList.removeRange(
+                                                      int.parse(
+                                                          _testCountController
+                                                              .text),
+                                                      _answerList.length);
+                                                  as.pdfUploadName
+                                                      .removeRange(
+                                                      int.parse(
+                                                          _testCountController
+                                                              .text),
+                                                      _answerList
+                                                          .length);
+                                                  as.pdfUploadName2
+                                                      .removeRange(
+                                                      int.parse(
+                                                          _testCountController
+                                                              .text),
+                                                      _answerList
+                                                          .length);
+                                                }
+                                                if (int.parse(
+                                                    _testCountController
+                                                        .text) >
+                                                    _answerList.length) {
+                                                  int diff = int.parse(
+                                                      _testCountController
+                                                          .text) -
+                                                      _answerList.length;
+                                                  for (int i = 0;
+                                                  i < diff;
+                                                  i++) {
+                                                    _answerList.add('1');
+                                                    as.pdfUploadName
+                                                        .add('');
+                                                    as.pdfUploadName2
+                                                        .add('');
+                                                  }
+                                                }
+                                                setState(() {});
+                                              }
+                                            } catch (e) {
+                                              print(e);
+                                            }
+                                          },
+                                          textAlignVertical: TextAlignVertical.center,
+                                          decoration: InputDecoration(
+                                            isDense: false,
+                                            hintText: '20',
+                                            hintStyle: f16w400,
+                                            border: InputBorder.none,
+                                            contentPadding: EdgeInsets.zero,
+                                            focusedBorder: InputBorder.none,
+                                            prefixIcon: Container(height: 50,
+                                                decoration: BoxDecoration(
+                                                    borderRadius:
+                                                    BorderRadius.only(topLeft: Radius.circular(8.0), bottomLeft: Radius.circular(8.0)),
+                                                    color: const Color(0xffEBEBEB)
+                                                ),
+                                              child: InkWell(
+                                                onTap: args?.edit == true &&args?.state !='임시'
+                                                    ? null
+                                                    : args?.state == '임시'
+                                                    ? () {
+                                                  _answerList.removeLast();
+                                                  as.pdfUploadName.removeLast();
+                                                  as.pdfUploadName2.removeLast();
+                                                  setState(() {
+                                                    // final x = _testCountController.text.obs;
+                                                    ///_testCountController -
+                                                    _testCountController.text = (_testCountController.text != '0' ?
+                                                    int.parse(_testCountController.text) - 1 : 0).toString();
+                                                  });
+                                                }
+                                                    : () {
+                                                  _answerList.removeLast();
+                                                  as.pdfUploadName.removeLast();
+                                                  as.pdfUploadName2.removeLast();
+                                                  setState(() {
+                                                    // final x = _testCountController.text.obs;
+                                                    ///_testCountController -
+                                                    _testCountController.text = (_testCountController.text != '0' ?
+                                                    int.parse(_testCountController.text) - 1 : 0).toString();
+                                                  });
+                                                },
+                                                child: Icon(
+                                                  Icons.remove,
+                                                  fill: 1,
+                                                  // color: Colors.black,
+                                                ),
+                                              ),
+                                            ),
+                                            suffixIcon: Container(height: 50,
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                BorderRadius.only(topRight: Radius.circular(8.0), bottomRight: Radius.circular(8.0)),
+                                                color: const Color(0xffEBEBEB)
+                                              ),
+                                              child: InkWell(
+                                                onTap: args?.edit == true &&args?.state !='임시'
+                                                    ? null
+                                                    : args?.state == '임시'
+                                                    ?() {
+                                                  _answerList.add('1');
+                                                  as.pdfUploadName.add('');
+                                                  as.pdfUploadName2.add('');
+                                                  setState(() {
+                                                    ///_testCountController +
+                                                    _testCountController.text =
+                                                        (int.parse(_testCountController.text) + 1).toString();
+                                                  });
+                                                }
+                                                    : () {
+                                                  _answerList.add('1');
+                                                  as.pdfUploadName.add('');
+                                                  as.pdfUploadName2.add('');
+                                                  setState(() {
+                                                    ///_testCountController +
+                                                    _testCountController.text =
+                                                        (int.parse(_testCountController.text) + 1).toString();
+                                                  });
+                                                },
+                                                child: Icon(
+                                                  Icons.add,
+                                                  color: Colors.black,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        )),
+                                    // const SizedBox(
+                                    //   width: 4,
+                                    // ),
+                                    // Container(
+                                    //   height: 40,
+                                    //   child: ElevatedButton(
+                                    //       onPressed: args?.edit == true ? null
+                                    //           : () async {
+                                    //               try {
+                                    //                 if (int.tryParse(
+                                    //                         _testCountController
+                                    //                             .text) !=
+                                    //                     null) {
+                                    //                   if (int.parse(
+                                    //                           _testCountController
+                                    //                               .text) <
+                                    //                       _answerList.length) {
+                                    //                     _answerList.removeRange(
+                                    //                         int.parse(
+                                    //                             _testCountController
+                                    //                                 .text),
+                                    //                         _answerList.length);
+                                    //                     as.pdfUploadName
+                                    //                         .removeRange(
+                                    //                             int.parse(
+                                    //                                 _testCountController
+                                    //                                     .text),
+                                    //                             _answerList
+                                    //                                 .length);
+                                    //                     as.pdfUploadName2
+                                    //                         .removeRange(
+                                    //                             int.parse(
+                                    //                                 _testCountController
+                                    //                                     .text),
+                                    //                             _answerList
+                                    //                                 .length);
+                                    //                   }
+                                    //                   if (int.parse(
+                                    //                           _testCountController
+                                    //                               .text) >
+                                    //                       _answerList.length) {
+                                    //                     int diff = int.parse(
+                                    //                             _testCountController
+                                    //                                 .text) -
+                                    //                         _answerList.length;
+                                    //                     for (int i = 0;
+                                    //                         i < diff;
+                                    //                         i++) {
+                                    //                       _answerList.add('1');
+                                    //                       as.pdfUploadName
+                                    //                           .add('');
+                                    //                       as.pdfUploadName2
+                                    //                           .add('');
+                                    //                     }
+                                    //                   }
+                                    //                   setState(() {});
+                                    //                 }
+                                    //               } catch (e) {
+                                    //                 print(e);
+                                    //               }
+                                    //             },
+                                    //       style: ButtonStyle(
+                                    //         shape: MaterialStateProperty.all<
+                                    //                 RoundedRectangleBorder>(
+                                    //             RoundedRectangleBorder(
+                                    //           borderRadius:
+                                    //               BorderRadius.circular(8.0),
+                                    //         )),
+                                    //         padding: MaterialStateProperty.all<
+                                    //             EdgeInsets>((kIsWeb &&
+                                    //                 (Get.width * 0.2 <= 171))
+                                    //             ? EdgeInsets.symmetric(
+                                    //                 vertical: 10,
+                                    //                 horizontal: 12)
+                                    //             : EdgeInsets.symmetric(
+                                    //                 vertical: 18.5,
+                                    //                 horizontal: 20)),
+                                    //         backgroundColor:
+                                    //             MaterialStateProperty.all<
+                                    //                 Color>(textFormColor),
+                                    //         splashFactory:
+                                    //             NoSplash.splashFactory,
+                                    //         elevation: MaterialStateProperty
+                                    //             .all<double>(0.0),
+                                    //       ),
+                                    //       child: Text('확인',
+                                    //           style: (kIsWeb &&
+                                    //                   (Get.width * 0.2 <= 171))
+                                    //               ? f12w700primary
+                                    //               : f16w700primary)),
+                                    // )
+                                    const SizedBox(height: 16,),
+                                    Text('시간 설정 (초단위)', style: f18w400,),
+                                    const SizedBox(height: 10,),
+                                    Container(
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.all(
+                                              Radius.circular(8.0)),
+                                          color: testCountColor,
+                                        ),
+                                        width: Get.width * 0.2,
+                                        child: TextFormField(
+                                          controller: _testCountController2,
+                                          textAlign: TextAlign.center,
+                                          enabled: args?.edit == true && args?.state !='임시'
+                                              ? false
+                                              : args?.state =='임시'
+                                              ? true
+                                              : true,
+                                          style: f16w400,
+                                          textAlignVertical: TextAlignVertical.center,
+                                          decoration: InputDecoration(
+                                            isDense: false,
+                                            hintText: '20',
+                                            hintStyle: f16w400,
+                                            border: InputBorder.none,
+                                            contentPadding: EdgeInsets.zero,
+                                            prefixIcon: Container(height: 50,
+                                              decoration: BoxDecoration(
+                                                  borderRadius:
+                                                  BorderRadius.only(topLeft: Radius.circular(8.0), bottomLeft: Radius.circular(8.0)),
+                                                  color: const Color(0xffEBEBEB)
+                                              ),
+                                              child: InkWell(
+                                                onTap: args?.edit == true &&args?.state !='임시'
+                                                    ? null
+                                                    : args?.state == '임시'
+                                                    ?() {
+                                                  setState(() {
+                                                    // final x = _testCountController.text.obs;
+                                                    ///_testCountController -
+                                                    _testCountController2.text = (_testCountController2.text != '0'
+                                                        ? int.parse(_testCountController2.text) - 1 : 0).toString();
+                                                  });
+                                                }
+                                                    : () {
+                                                  setState(() {
+                                                    // final x = _testCountController.text.obs;
+                                                    ///_testCountController -
+                                                    _testCountController2.text = (_testCountController2.text != '0'
+                                                        ? int.parse(_testCountController2.text) - 1 : 0).toString();
+                                                  });
+                                                },
+                                                child: Icon(
+                                                  Icons.remove,
+                                                  fill: 1,
+                                                  // color: Colors.black,
+                                                ),
+                                              ),
+                                            ),
+                                            suffixIcon: Container(height: 50,
+                                              decoration: BoxDecoration(
+                                                  borderRadius:
+                                                  BorderRadius.only(topRight: Radius.circular(8.0), bottomRight: Radius.circular(8.0)),
+                                                  color: const Color(0xffEBEBEB)
+                                              ),
+                                              child: InkWell(
+                                                onTap: args?.edit == true &&args?.state !='임시'
+                                                    ? null
+                                                    :args?.state == '임시'
+                                                    ?() {
+                                                  setState(() {
+                                                    ///_testCountController +
+                                                    _testCountController2.text = (int.parse(_testCountController2.text) + 1).toString();
+                                                  });
+                                                }
+                                                    : () {
+                                                  setState(() {
+                                                    ///_testCountController +
+                                                    _testCountController2.text = (int.parse(_testCountController2.text) + 1).toString();
+                                                  });
+                                                },
+                                                child: Icon(
+                                                  Icons.add,
+                                                  color: Colors.black,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        )),
+                                    const SizedBox(height: 16,),
+                                    Row(
+                                      children: [
+                                        Text('답 공개', style: f18w400,),
+                                        SizedBox(
+                                          width: 7,
+                                        ),
+                                        SwitchButton(onTap: (){
+                                          scoreVisual = !scoreVisual;
+                                          setState(() {
+                                          });
+                                        },value: scoreVisual,),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 16,),
+                                    Text('비밀번호', style: f18w400,),
+                                    const SizedBox(height: 10,),
+                                    Container(
+                                      width: Get.width * 0.2,
+                                      child: TextFormFields(
+                                        controller: _testPwController,
+                                        hintText: '비밀번호를 입력해 주세요',
+                                        surffixIcon: '1',
+                                        obscureText: _obscureText.isTrue,
+                                        onTap: () {
+                                          setState(() {
+                                            _obscureText.value = !_obscureText.value;
+                                          });
+                                        },
+                                      ),
+                                    ),
+                                    ],),
+                              ),
+                              Spacer(),
+                              Column(mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('답안', style: f24w700,),
+                                  const SizedBox(height: 20,),
+                                  Container(
+                                    width: Get.width * 0.4, height: Get.height * 0.5,
+                                    decoration: BoxDecoration(
+                                            color: Colors.white,
+                                            borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 40),
+                                    child: ListView.builder(
+                                      itemCount: _answerList.length,
+                                      shrinkWrap: true,
+                                      physics: const ClampingScrollPhysics(),
+                                      itemBuilder: (context, index) {
+                                        return args?.edit == true&&args?.state !='임시'
+                                            ? Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                Text('${index + 1}번 문제', style: f18w700,),
+                                                Spacer(),
+                                                Container(
+                                                    height: 100, width: 310,
+                                                    child: ListView(
+                                                      scrollDirection: Axis.horizontal,
+                                                      children: List.generate(
+                                                          number.length, (i) =>
+                                                          Row(
+                                                            children: [
+                                                              TextButton(
+                                                                  onPressed:() {},
+                                                                  style: TextButton
+                                                                      .styleFrom(
+                                                                    shape: RoundedRectangleBorder(
+                                                                        borderRadius: BorderRadius.circular(20)),
+                                                                    side: BorderSide(width: 1, color: Colors.grey),
+                                                                    minimumSize: Size(52, 52),
+                                                                    foregroundColor: _answerList[index] == number[i] ? Colors.white : Colors.black,
+                                                                    backgroundColor: _answerList[index] == number[i] ? nowColor : Colors.white,
+                                                                    padding: EdgeInsets.only(right: 12, left: 12),
+                                                                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                                                  ),
+                                                                  child: Text(
+                                                                      '${i + 1}',
+                                                                      style: _answerList[index] == number[i] ? f10Whitew500 : f16w700 )),
+                                                              SizedBox(
+                                                                width: 10,
+                                                              ),
+                                                            ],
+                                                          )),
+                                                    )),
+                                              ],
+                                            )
+                                            : args?.state == '임시'
+                                            ? Row(
+                                          children: [
+                                            Text('${index + 1}번 문제', style: f18w700,),
+                                            Spacer(),
+                                            Container(
+                                                height: 100, width: 310,
+                                                child: ListView(
+                                                  scrollDirection: Axis.horizontal,
+                                                  children: List.generate(
+                                                      number.length, (i) =>
+                                                      Row(
+                                                        children: [
+                                                          TextButton(
+                                                              onPressed:() {setState(() {
+                                                                _answerList[index] = number[i];
+                                                              });},
+                                                              style: TextButton
+                                                                  .styleFrom(
+                                                                shape: RoundedRectangleBorder(
+                                                                    borderRadius: BorderRadius.circular(20)),
+                                                                side: BorderSide(width: 1, color: Colors.grey),
+                                                                minimumSize: Size(52, 52),
+                                                                backgroundColor: _answerList[index] == number[i] ? nowColor : Colors.white,
+                                                                padding: EdgeInsets.only(right: 12, left: 12),
+                                                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                                              ),
+                                                              child: Text(
+                                                                  '${i + 1}',
+                                                                  style: _answerList[index] == number[i] ? f16Whitew700 : f16w700 )),
+                                                          SizedBox(
+                                                            width: 10,
+                                                          ),
+                                                        ],
+                                                      )),
+                                                )),
+                                          ],
+                                        )
+                                            : Row(
+                                              children: [
+                                                Text('${index + 1}번 문제', style: f18w700,),
+                                                Spacer(),
+                                                Container(
+                                                    height: 100, width: 310,
+                                                    child: ListView(
+                                                      scrollDirection: Axis.horizontal,
+                                                      children: List.generate(
+                                                          number.length, (i) =>
+                                                          Row(
+                                                            children: [
+                                                              TextButton(
+                                                                  onPressed:() {setState(() {
+                                                                    _answerList[index] = number[i];
+                                                                  });},
+                                                                  style: TextButton
+                                                                      .styleFrom(
+                                                                    shape: RoundedRectangleBorder(
+                                                                        borderRadius: BorderRadius.circular(20)),
+                                                                    side: BorderSide(width: 1, color: Colors.grey),
+                                                                    minimumSize: Size(52, 52),
+                                                                    backgroundColor: _answerList[index] == number[i] ? nowColor : Colors.white,
+                                                                    padding: EdgeInsets.only(right: 12, left: 12),
+                                                                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                                                  ),
+                                                                  child: Text(
+                                                                      '${i + 1}',
+                                                                      style: _answerList[index] == number[i] ? f16Whitew700 : f16w700 )),
+                                                              SizedBox(
+                                                                width: 10,
+                                                              ),
+                                                            ],
+                                                          )),
+                                                    )),
+                                              ],
+                                            );
+                                      },
+                                    ),
+                                  ),
+                              ],)
+                            ],),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    height: 30,
+                  ),
+                  Footer()
+                ],
+              ),
             ),
           ),
         ),
@@ -679,50 +1317,215 @@ class _PdfUploadScreenState extends State<PdfUploadScreen> {
     );
   }
 
-  Future<void> _uploadFile(String teacher, String docid) async {
-    setState(() {
-      _imageLoading = true;
-    });
-    _imageLoading == true
-        ? showDialog(
-      barrierDismissible: false,
-      builder: (ctx) {
-        return Center(child: LoadingBodyScreen());
-      },
-      context: context,
-    )
-        : Container();
-    var file = File(pickedFile!.path!);
-   // if(a=='1'){
-   //   file = File(widget.path!);
-   // }
-    print('2: ${docid}');
-    final ref = FirebaseStorage.instance
-        .ref()
-        .child('12345')
-        .child('${teacher}')
-        .child('${docid}.pdf');
-    print('3: ${docid}');
-    print('파일 : ${file}');
-    uploadTask = ref.putFile(file);
-    final snapshot = await uploadTask!.whenComplete(() => null);
-    setState(() {
-      _imageLoading = false;
-    });
-  }
-
-  Future<void> _updateTest(String docId) async{
+  Future<void> _updateTest(String docId) async {
     final as = Get.put(AnswerState());
-    DocumentReference ref = FirebaseFirestore.instance.collection('answer').doc(docId);
+    DocumentReference ref =
+        FirebaseFirestore.instance.collection('answer').doc(docId);
     ref.update({
       'pdfCategory': _testNameController.text,
       'password': _testPwController.text,
-      // 'answer': as.answer.toList(),
-      // 'pdfUploadName':pickedFile?.name==null?widget.pdfUploadName:pickedFile?.name,
+      'scoreVisual':'${scoreVisual}',
+      'category':_dropdown
     });
     // if(isfilePath == '11'){
-    //   await _uploadFile(as.teacher.value, widget.docId!);
+    //   await _uploadFile(as.teacher.value, args.docId!);
     // }
+  }
+  // 임시저장일때 다시 저장하는 함수
+  Future<void> _updateTestSave(String docId) async {
+    final as = Get.put(AnswerState());
+    DocumentReference ref =
+    FirebaseFirestore.instance.collection('answer').doc(docId);
+    ref.update({
+      'pdfCategory': _testNameController.text,
+      'password': _testPwController.text,
+      'answer': as.answer.toList(),
+      'pdfUploadName': as.pdfUploadName,
+      'pdfUploadName2':as.pdfUploadName2,
+      'scoreVisual':'${scoreVisual}',
+      'category':_dropdown
+      // 'pdfUploadName':pickedFile?.name==null?args.pdfUploadName:pickedFile?.name,
+    });
+    if(isfilePath == '11'){
+      final ref = FirebaseStorage.instance
+          .ref()
+          .child('12345')
+          .child('${as.teacher}')
+          .child('${docId}.pdf');
+      UploadTask uploadTask = ref.putData(uploadfile,
+        SettableMetadata(contentType: 'application/pdf'),
+      );
+      final snapshot = await uploadTask.whenComplete(() => null);
+    }
+    if(isfilePath2 =='11'){
+      final firebaseStorageRef = FirebaseStorage.instance
+          .ref()
+          .child('teacher')
+          .child('audio')
+          .child('${as.teacher}')
+          .child('${docId}')
+          .child('${docId}');
+      final uploadTask2 = firebaseStorageRef.putData(
+          uploadfile2!, SettableMetadata(contentType: 'audio/mpeg'));
+      await ref.update({
+        "audio": 'yes',
+       });
+    }
+    else{
+      await ref.update({
+        "audio": 'no',
+      });
+    }
+  }
+  // 임시저장일때 저장버튼 누르면 -> 상태임시에서 완료로 바뀌는 함수
+  Future<void> _updateUpload(String docId) async {
+    final as = Get.put(AnswerState());
+    DocumentReference ref =
+    FirebaseFirestore.instance.collection('answer').doc(docId);
+    ref.update({
+      'pdfCategory': _testNameController.text,
+      'password': _testPwController.text,
+      'answer': as.answer.toList(),
+      'pdfUploadName': as.pdfUploadName,
+      'pdfUploadName2':as.pdfUploadName2,
+      'scoreVisual':'${scoreVisual}',
+      'state':'완료',
+      'category':_dropdown
+    });
+    if(isfilePath == '11'){
+      final ref = FirebaseStorage.instance
+          .ref()
+          .child('12345')
+          .child('${as.teacher}')
+          .child('${docId}.pdf');
+      UploadTask uploadTask = ref.putData(uploadfile,
+        SettableMetadata(contentType: 'application/pdf'),
+      );
+      final snapshot = await uploadTask.whenComplete(() => null);
+    }
+    if(isfilePath2 =='11'){
+      final firebaseStorageRef = FirebaseStorage.instance
+          .ref()
+          .child('teacher')
+          .child('audio')
+          .child('${as.teacher}')
+          .child('${docId}')
+          .child('${docId}');
+      final uploadTask2 = firebaseStorageRef.putData(
+          uploadfile2!, SettableMetadata(contentType: 'audio/mpeg'));
+      await ref.update({
+        "audio": 'yes',
+      });
+    }
+    else{
+      await ref.update({
+        "audio": 'no',
+      });
+    }
+  }
+
+  Future<void> _updateTimer(String docId) async {
+    final as = Get.put(AnswerState());
+    DocumentReference ref =
+    FirebaseFirestore.instance.collection('answer').doc(docId);
+    ref.update({
+      'temp2' : _testCountController2.text,
+    });
+  }
+
+  Future<bool> _useBackKey(BuildContext context) async {
+    return await showComponentDialog(context, '작성을 취소하시겠습니까?', () {
+      Get.offAllNamed(MainScreen.id);
+    });
+  }
+  /// 전체문제 임시저장 업로드
+  Future<void> firebaseAnswerUploadSave(
+      Uint8List uploadfile, Uint8List? audioFile, String timer,bool scoreVisual,String subject) async {
+    final as = Get.put(AnswerState());
+    final us = Get.put(UserState());
+
+    CollectionReference ref = FirebaseFirestore.instance.collection('answer');
+    Answer ass = Answer(
+      isIndividual: 'false',
+      audio: [],
+      individualBody: [],
+      individualTitle: [],
+      individualFile: [],
+      student: [],
+      createDate: '${DateTime.now()}',
+      answer: as.answer.toList(),
+      nickName: us.userList[0].nickName,
+      answerCount: '',
+      docId: '',
+      group: '',
+      category: subject,
+      password: '${as.password}',
+      pdfCategory: '${as.pdfCategory}',
+      pdfName: '${as.pdfName}',
+      pdfUploadName: as.pdfUploadName,
+      pdfUploadName2: as.pdfUploadName2,
+      state: '임시',
+      teacher: '${as.teacher}',
+      temp1: [],
+      temp2: timer,
+      images: [],
+        scoreVisual:'${scoreVisual}'
+    );
+    ref.add(ass.toMap()).then((doc) async {
+      setState(() {
+        _imageLoading = true;
+      });
+      _imageLoading == true
+          ? showDialog(
+        barrierDismissible: false,
+        builder: (ctx) {
+          return Center(child: LoadingBodyScreen());
+        },
+        context: context,
+      )
+          : Container();
+      DocumentReference userDocRef = FirebaseFirestore.instance.collection('answer').doc(doc.id);
+      as.docId.value = doc.id;
+      final ref = FirebaseStorage.instance
+          .ref()
+          .child('12345')
+          .child('${as.teacher}')
+          .child('${as.docId}.pdf');
+      UploadTask uploadTask = ref.putData(
+        uploadfile,
+        SettableMetadata(contentType: 'application/pdf'),
+      );
+      final snapshot = await uploadTask.whenComplete(() => null);
+      if (audioFile != null) {
+        final firebaseStorageRef = FirebaseStorage.instance
+            .ref()
+            .child('teacher')
+            .child('audio')
+            .child('${as.teacher}')
+            .child('${as.docId}')
+            .child('${as.docId}');
+        final uploadTask2 = firebaseStorageRef.putData(
+            audioFile, SettableMetadata(contentType: 'audio/mpeg'));
+        await uploadTask2.then((p0) => null);
+        await userDocRef.update({
+          "audio": 'yes',
+        });
+      } else {
+        await userDocRef.update({"audio": 'no'});
+      }
+      await userDocRef.update({'docId': '${doc.id}'});
+      setState(() {
+        _imageLoading = false;
+        Navigator.pop(context);
+      });
+      if(_imageLoading ==false){
+        showConfirmTapDialog(context, "임시저장이 완료되었습니다.", () {
+          // Get.offAll(() => BottomNavigator());
+          // Get.offAllNamed(MainScreen.id);
+          Get.to(()=>BottomNavigator());
+        });
+      }
+    });
   }
 
 }

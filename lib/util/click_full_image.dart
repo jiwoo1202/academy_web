@@ -3,17 +3,17 @@ import 'package:extended_image/extended_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class ClickFullImage extends StatefulWidget {
+class clickFullImages extends StatefulWidget {
   final List listImagesModel;
   final int current;
 
-  const ClickFullImage({Key? key, required this.listImagesModel, required this.current}) : super(key: key);
+  const clickFullImages({Key? key, required this.listImagesModel, required this.current}) : super(key: key);
 
   @override
-  _ClickFullImageState createState() => _ClickFullImageState();
+  _clickFullImagesState createState() => _clickFullImagesState();
 }
 
-class _ClickFullImageState extends State<ClickFullImage> {
+class _clickFullImagesState extends State<clickFullImages> {
   int _current = 0;
   bool _stateChange = false;
 
@@ -36,19 +36,21 @@ class _ClickFullImageState extends State<ClickFullImage> {
     return new Container(
         color: Colors.transparent,
         child: new Scaffold(
-            backgroundColor: Colors.transparent,
-            appBar: AppBar(
-              backgroundColor: Colors.white,
-              elevation: 0,
-              leading: GestureDetector(
-                onTap: (){
-                  Get.back();
-                },
-                  child: Icon(Icons.arrow_back_ios,color: Colors.black,)),
-            ),
+            // backgroundColor: Colors.transparent,
+            // appBar: AppBar(
+            //   backgroundColor: Colors.white,
+            //   automaticallyImplyLeading: false,
+            //   elevation: 0,
+            //   // leading: GestureDetector(
+            //   //   onTap: (){
+            //   //     Get.back();
+            //   //   },
+            //   //     child: Icon(Icons.arrow_back_ios,color: Colors.black,)),
+            // ),
             body: Container(
+              // color: Colors.grey[500],
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   CarouselSlider(
@@ -79,7 +81,7 @@ class _ClickFullImageState extends State<ClickFullImage> {
                                   borderRadius: BorderRadius.all(Radius.circular(0.0)),
                                   child: ExtendedImage.network(
                                     url,
-                                    fit: BoxFit.cover,
+                                    fit: BoxFit.fill,
                                     cache: false,
                                     enableLoadState: false,
                                   ),

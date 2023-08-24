@@ -14,7 +14,7 @@ Future<List> jobGet(String docId)async{
     //   return User.fromDocument(doc);
     // }).toList();
     final allData = snapshot.docs.map((doc) => doc.data()).toList();
-    print('job222 : ${allData.length}');
+    // print('job222 : ${allData.length}');
     List ls = allData;
     return ls;
   } catch (e) {
@@ -50,7 +50,7 @@ Future<void> notjobFullGet(String teacher)async{
     QuerySnapshot snapshot2 = await ref2.where('blockId', isEqualTo: teacher)
         .where('collectionName', isEqualTo: 'jobHunting').where('commentField', isEqualTo: 'false').get();
     final allData = snapshot2.docs.map((doc) => doc.data()).toList();
-    print('55555 : ${allData.length}');
+    // print('55555 : ${allData.length}');
     List ls = allData;
 
     List ls3 = [];
@@ -68,7 +68,7 @@ Future<void> notjobFullGet(String teacher)async{
       }
     }
     js.notuserL.value= a; //ls3;
-    print('차단한BlockList: ${js.notuserL.value} ');
+    // print('차단한BlockList: ${js.notuserL.value} ');
 
 
   } catch (e) {
@@ -167,14 +167,14 @@ Future<List> jobBlockExceptGet(String docId) async {
         .where('commentField', isEqualTo: 'true')
         .get();
     final allData = snapshot2.docs.map((doc) => doc.data()).toList();
-    print('55555 : ${allData.length}');
+    // print('55555 : ${allData.length}');
     List ls = allData;
 
     CollectionReference ref = FirebaseFirestore.instance
         .collection('jobHunting').doc(docId).collection('comments');
     QuerySnapshot snapshot = await ref.get();
     final allData2 = snapshot.docs.map((doc) => doc.data()).toList();
-    print('how 777 : ${allData2.length}');
+    // print('how 777 : ${allData2.length}');
     // _commentsList = allData2;
     List ls2 = allData2;
     List ls3 = [];

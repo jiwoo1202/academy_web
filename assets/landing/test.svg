@@ -1,0 +1,31 @@
+<svg width="164" height="164" viewBox="0 0 164 164" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <filter id="filter0_b_546_4693" x="12" y="39" width="140" height="142" filterUnits="userSpaceOnUse"
+                color-interpolation-filters="sRGB">
+            <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+            <feGaussianBlur in="BackgroundImageFix" stdDeviation="5"/>
+            <feComposite in2="SourceAlpha" operator="in" result="effect1_backgroundBlur_546_4693"/>
+            <feBlend mode="normal" in="SourceGraphic" in2="effect1_backgroundBlur_546_4693" result="shape"/>
+        </filter>
+    </defs>
+    <mask id="mask0_546_4693" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="164" height="164">
+        <circle cx="82" cy="82" r="82" fill="#160F45"/>
+    </mask>
+
+    <g mask="url(#mask0_546_4693)">
+        <circle cx="82" cy="82" r="82" fill="#160F45"/>
+        <rect x="44" y="29" width="80" height="100" rx="4" fill="#777390"/>
+        <rect x="31" y="39" width="102" height="120" rx="4" fill="#B1AFC1"/>
+        <g filter="url(#filter0_b_546_4693)">
+            <rect x="22" y="49" width="120" height="122" rx="4" fill="white" fill-opacity="0.9"/>
+        </g>
+        <rect x="64" y="111" width="58" height="8" rx="2" fill="#E0E0E7"/>
+        <rect x="64" y="130" width="58" height="8" rx="2" fill="#E0E0E7"/>
+        <rect x="64" y="149" width="58" height="8" rx="2" fill="#E0E0E7"/>
+        <rect x="45" y="109" width="12" height="12" rx="6" fill="#160F45" stroke="#1FDE90" stroke-width="4"/>
+        <rect x="43" y="126" width="16" height="16" rx="8" fill="#E0E0E7"/>
+        <rect x="43" y="145" width="16" height="16" rx="8" fill="#E0E0E7"/>
+        <rect opacity="0.1" x="22" y="59" width="120" height="39" fill="#160F45"/>
+    </g>
+
+</svg>

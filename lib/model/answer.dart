@@ -7,19 +7,25 @@ class Answer {
   List individualTitle;
   List individualBody;
   List images;
+  List audio;
+  List student;
   String? isIndividual;
   String? answerCount;
   String? docId;
+  String? nickName;
   String? group;
   String? password;
   String? pdfCategory;
   String? pdfName;
-  String? pdfUploadName;
+  List? pdfUploadName;
+  List? pdfUploadName2;
   String? state;
   String? teacher;
-  String? temp1;
+  String? scoreVisual;
+  String? sat;
+  List? temp1;
   String? temp2;
-
+  String? category;
   Answer(
       {required this.createDate,
         required this.answer,
@@ -34,11 +40,19 @@ class Answer {
         required this.password,
         required this.pdfCategory,
         required this.pdfName,
-        required this.pdfUploadName,
+        required this.pdfUploadName2,
         required this.state,
         required this.teacher,
         required this.temp1,
-        required this.temp2,});
+        required this.temp2,
+        required this.audio,
+        required this.nickName,
+        required this.student,
+        required this.pdfUploadName,
+        required this.scoreVisual,
+        this.category,
+        this.sat
+      });
 
   Answer.fromMap(Map<String, dynamic> map)
       : createDate = map['createDate'],
@@ -48,17 +62,24 @@ class Answer {
         images = map['images'].cast<String>(),
         answerCount = map['answerCount'],
         isIndividual = map['isIndividual'],
+        sat = map['sat'],
         individualFile = map['individualFile'].cast<String>(),
+        student = map['student'].cast<String>(),
         docId = map['docId'],
         group = map['group'],
         password = map['password'],
         pdfCategory = map['pdfCategory'],
         pdfName = map['pdfName'],
         pdfUploadName = map['pdfUploadName'],
+        pdfUploadName2 = map['pdfUploadName2'],
         state = map['state'],
         teacher = map['teacher'],
         temp1 = map['temp1'],
-        temp2 = map['temp2'];
+        temp2 = map['temp2'],
+        audio = map['audio'].cast<String>(),
+        nickName = map['nickName'],
+        scoreVisual = map['scoreVisual'],
+        category = map['category'];
 
   Map<String, dynamic> toMap() {
     return {
@@ -68,18 +89,25 @@ class Answer {
       "individualBody": individualBody,
       "individualTitle": individualTitle,
       "images": images,
+      "student": student,
+      "sat":sat,
       "isIndividual": isIndividual,
       "answerCount": answerCount,
+      "category":category,
       "docId" : docId,
       "group" : group,
       "password" : password,
       "pdfCategory" : pdfCategory,
       "pdfName" : pdfName,
       "pdfUploadName" : pdfUploadName,
+      "pdfUploadName2" : pdfUploadName2,
       "state": state,
       "teacher" : teacher,
       "temp1": temp1,
       "temp2": temp2,
+      "audio": audio,
+      "nickName": nickName,
+      "scoreVisual" :scoreVisual
     };
   }
 
@@ -94,15 +122,21 @@ class Answer {
       images: doc['images'].cast<String>(),
       isIndividual: doc['isIndividual'],
       answerCount : doc['answerCount'],
+      sat: doc['sat'],
       group: doc['group'],
       password: doc['password'],
       pdfCategory : doc['pdfCategory'],
       pdfName : doc['pdfName'],
+      pdfUploadName2 : doc['pdfUploadName2'],
       pdfUploadName : doc['pdfUploadName'],
       state : doc['state'],
       teacher : doc['teacher'],
       temp1: doc['temp1'],
       temp2: doc['temp2'],
+      audio: doc['audio'].cast<String>(),
+      nickName: doc['nickName'],
+      student: doc['student'].cast<String>(),
+      scoreVisual: doc['scoreVisual']
     );
   }
 }

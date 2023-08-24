@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../util/colors.dart';
@@ -21,8 +23,10 @@ class _SwitchButtonState extends State<SwitchButton> {
     return GestureDetector(
       onTap: widget.onTap,
       child: AnimatedContainer(
-        height: 28,
-        width: 48,
+        height: kIsWeb && (Get.width * 0.2 <= 171)
+            ?20 : 28,
+        width:kIsWeb && (Get.width * 0.2 <= 171)
+            ? 40 :  48,
         duration: animationDuration,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(30),
@@ -45,8 +49,10 @@ class _SwitchButtonState extends State<SwitchButton> {
               alignment: Alignment.center,
               children: [
                 Container(
-                  width: 24,
-                  height: 24,
+                  width:kIsWeb && (Get.width * 0.2 <= 171)
+                      ?16 : 24,
+                  height:kIsWeb && (Get.width * 0.2 <= 171)
+                      ?16: 24,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: Colors.white,

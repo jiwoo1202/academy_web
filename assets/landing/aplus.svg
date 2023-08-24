@@ -1,0 +1,22 @@
+<svg width="164" height="164" viewBox="0 0 164 164" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <radialGradient id="paint0_radial_552_4791" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(53.0988 119.817) rotate(-53.6684) scale(20.2028 19.2993)">
+            <stop stop-color="#60C6B3"/>
+            <stop offset="1" stop-color="#AFFFA2"/>
+        </radialGradient>
+        <radialGradient id="paint1_radial_552_4791" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(80.0988 117.329) rotate(-63.5769) scale(26.8975 21.4537)">
+            <stop stop-color="#60C6B3"/>
+            <stop offset="1" stop-color="#AFFFA2"/>
+        </radialGradient>
+        <radialGradient id="paint2_radial_552_4791" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(107.099 110.28) rotate(-75.4821) scale(47.7467 23.1914)">
+            <stop stop-color="#60C6B3"/>
+            <stop offset="1" stop-color="#AFFFA2"/>
+        </radialGradient>
+    </defs>
+    <circle cx="82" cy="82" r="82" fill="#160F45"/>
+    <path d="M56.517 87H64.5704L52.0342 54H44.5362L32 87H39.4583L41.7195 80.6025H54.2558L56.517 87ZM43.9411 74.2049L47.9876 62.7055L52.0342 74.2049H43.9411Z" fill="white"/>
+    <path d="M85 67.5644H78.3352V60.519H71.71V67.5644H65.0452V73.4761H71.71V80.5215H78.3352V73.4761H85V67.5644Z" fill="white"/>
+    <rect x="49" y="100" width="19" height="25" rx="3" fill="url(#paint0_radial_552_4791)"/>
+    <rect x="76" y="88" width="19" height="37" rx="3" fill="url(#paint1_radial_552_4791)"/>
+    <rect x="103" y="54" width="19" height="71" rx="3" fill="url(#paint2_radial_552_4791)"/>
+</svg>
